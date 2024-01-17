@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta charset="UTF-8">
+
+    <title>Template de Base</title>
+    <link rel="shortcut icon" href="img/seidor-logo1.png">
+
+    <script id="sap-ui-bootstrap"
+            src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+            data-sap-ui-libs="sap.m"
+            data-sap-ui-theme="sap_belize_plus"
+            data-sap-ui-compatVersion="edge"
+            data-sap-ui-async="true"
+            data-sap-ui-frameOptions="trusted"
+            data-sap-ui-resourceroots='{"wwl": ""}'>
+    </script>
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <script>
+        // jQuery.sap.require("wwl.utils.CacheBuster");
+        sap.ui.getCore().attachInit(function () {
+            new sap.m.Shell({
+                app: new sap.ui.core.ComponentContainer({
+                    height: "100%",
+                    width: "100%",
+                    name: "wwl"
+                })
+            }).placeAt("content")
+        });
+    </script>
+</head>
+
+<body class="sapUiBody sapMBrandingBar-CTX" id="content">
+</body>
+
+</html>

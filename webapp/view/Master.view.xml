@@ -1,0 +1,45 @@
+<mvc:View controllerName="wwl.controller.Master"
+          xmlns:mvc="sap.ui.core.mvc"
+          xmlns:f="sap.f"
+          xmlns="sap.m">
+
+    <f:DynamicPage>
+
+        <f:header>
+            <f:DynamicPageHeader pinnable="false">
+                <FlexBox alignItems="Center" justifyContent="SpaceBetween">
+                    <Title text="Template de base" titleStyle="H2" class="sapUiSmallMarginBegin"/>
+                    <Image src="./img/seidor-logo1.png" height="42px"/>
+                </FlexBox>
+            </f:DynamicPageHeader>
+        </f:header>
+
+        <f:content>
+
+            <Table items="{ordersModel>/}">
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <content>
+                            <Title text="TOP 5 Commandes" level="H2"/>
+                            <ToolbarSpacer/>
+                        </content>
+                    </OverflowToolbar>
+                </headerToolbar>
+                <columns>
+                    <Column>
+                        <Text text="DocNum"/>
+                    </Column>
+                    <Column>
+                        <Text text="Client"/>
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <Text text="{ordersModel>DocNum}"/>
+                        <Text text="{ordersModel>CardName}"/>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </f:content>
+    </f:DynamicPage>
+</mvc:View>
