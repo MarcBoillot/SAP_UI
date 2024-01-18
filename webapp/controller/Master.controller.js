@@ -22,14 +22,14 @@ sap.ui.define([
 
             this.getOwnerComponent().getRouter()
                 .getRoute("Master")
-                .attachMatched(this.onRouteMatch, this);
+                .attachMatched(this.onRouteMatch, this)
+
         },
 
         onRouteMatch: async function () {
             const order = await Models.Orders().top(5).get()
             this._setModel(order.value, "ordersModel")
-
-            // /** Exemple d'une vue SQL **/
+            console.log(this._getModel("ordersModel").getData());         // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
             // console.log("transferRequest ::", transferRequest)
 
@@ -37,5 +37,31 @@ sap.ui.define([
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
+
+        onCollapseAll: function(){
+            let oTreeTable = Models.Orders().top(2).get()
+            this._setModel(oTreeTable.value,"ordersModel");
+            oTreeTable.collapseAll();
+        },
+
+        onCollapseSelection: function() {
+            let oTreeTable = Models.Orders().top(2).get()
+            this._setModel(oTreeTable.value,"ordersModel");
+            oTreeTable.collapse(oTreeTable.getSelectedIndices());
+        },
+
+        onExpandFirstLevel: function() {
+            let oTreeTable = Models.Items().top(2).get()
+            this._setModel(oTreeTable.value,"itemsModel");
+            oTreeTable.expandToLevel(1);
+        },
+
+        onExpandSelection: function() {
+            let oTreeTable = Models.Orders().top(2).get()
+            this._setModel(oTreeTable.value,"ordersModel");
+            oTreeTable.expand(oTreeTable.getSelectedIndices());
+        },
+
+
     });
 });

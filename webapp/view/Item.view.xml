@@ -1,0 +1,61 @@
+<mvc:View controllerName="wwl.controller.Master"
+          xmlns:mvc="sap.ui.core.mvc"
+          xmlns:f="sap.f"
+          xmlns="sap.m">
+    <m:page>
+        <m:content>
+            <TreeTable
+                    id="TreeTableBasic"
+                    rows="{path:'Item', parameters: {arrayNames:['Items']}}"
+                    selectionMode="MultiToggle"
+                    enableSelectAll="false"
+                    ariaLabelledBy="title">
+                <extension>
+                    <m:OverflowToolbar style="Clear">
+                        <m:Title id="title" text="Clothing"/>
+                        <m:ToolbarSpacer/>
+                        <m:Button text="Collapse all" press="onCollapseAll"/>
+                        <m:Button text="Collapse selection" press="onCollapseSelection"/>
+                        <m:Button text="Expand first level" press="onExpandFirstLevel"/>
+                        <m:Button text="Expand selection" press="onExpandSelection"/>
+                    </m:OverflowToolbar>
+                </extension>
+                <columns>
+                    <Column width="13rem">
+                        <m:Label text="Items"/>
+                        <template>
+                            <m:Text text="{name}" wrapping="false" />
+                        </template>
+                    </Column>
+                    <Column width="9rem">
+                        <m:Label text="Price"/>
+                        <template>
+                            <u:Currency value="{amount}" currency="{currency}"/>
+                        </template>
+                    </Column>
+                    <Column width="11rem">
+                        <m:Label text="Size"/>
+                        <template>
+                            <m:Select
+                                    items="{path: '/sizes', templateShareable: true}"
+                                    selectedKey="{size}"
+                                    visible="{= !!${size}}"
+                                    forceSelection="false">
+                                <core:Item key="{key}" text="{value}"/>
+                            </m:Select>
+                        </template>
+                    </Column>
+                </columns>
+            </TreeTable>
+        </m:content>
+
+
+    </m:page>
+
+
+
+
+
+
+
+</mvc:View>

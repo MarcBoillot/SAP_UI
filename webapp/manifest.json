@@ -42,7 +42,8 @@
       "libs": {
         "sap.ui.core": {},
         "sap.m": {},
-        "sap.ui.layout": {}
+        "sap.ui.layout": {},
+        "sap.ui.table": {}
       }
     },
     "contentDensities": {
@@ -89,8 +90,30 @@
           "pattern": "",
           "name": "Master",
           "view": "Master"
+        },
+        {
+          "pattern": "AddOrder",
+          "name": "NewOrder",
+          "view": "NewOrder"
+        },
+        {
+          "pattern": "Item",
+          "name": "Item",
+          "view": "Item"
         }
+
+
       ]
+    },
+    "config":  {
+      "sample": {
+        "stretch": true,
+        "files": [
+          "View.view.xml",
+          "Controller.controller.js",
+          "manifest.json"
+        ]
+      }
     }
   }
 }

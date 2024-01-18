@@ -1,7 +1,8 @@
 <mvc:View controllerName="wwl.controller.Master"
           xmlns:mvc="sap.ui.core.mvc"
           xmlns:f="sap.f"
-          xmlns="sap.m">
+          xmlns="sap.m"
+          xmlns:l="sap.ui.table">
 
     <f:DynamicPage>
 
@@ -16,30 +17,51 @@
 
         <f:content>
 
-            <Table items="{ordersModel>/}">
-                <headerToolbar>
-                    <OverflowToolbar>
-                        <content>
-                            <Title text="TOP 5 Commandes" level="H2"/>
-                            <ToolbarSpacer/>
-                        </content>
-                    </OverflowToolbar>
-                </headerToolbar>
-                <columns>
-                    <Column>
-                        <Text text="DocNum"/>
-                    </Column>
-                    <Column>
-                        <Text text="Client"/>
-                    </Column>
-                </columns>
-                <items>
-                    <ColumnListItem>
-                        <Text text="{ordersModel>DocNum}"/>
-                        <Text text="{ordersModel>CardName}"/>
-                    </ColumnListItem>
-                </items>
-            </Table>
+            <l:TreeTable
+                         id="TreeTableBasic"
+                         rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
+                         selectionMode="MultiToggle"
+                         enableSelectAll="false"
+                         ariaLabelledBy="title">
+
+                <l:columns>
+                    <l:Column>
+                        <Label text="DocNum"/>
+                        <l:template>
+                            <Text text="{ordersModel>DocNum}" wrapping="false" />
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Client"/>
+                        <l:template>
+                            <Text text="{ordersModel>CardName}" wrapping="false" />
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Date"/>
+                        <l:template>
+                            <Text text="{ordersModel>DocDate}" wrapping="false" />
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Details Orders"/>
+                        <l:template>
+                            <Text text="{ordersModel>ItemDescription}" wrapping="false" />
+                        </l:template>
+                        <!--a verifier sans -->
+                        <l:extension>
+                            <OverflowToolbar style="Clear">
+                                <Title id="title" text="TOP 5 Orders"/>
+                                <ToolbarSpacer/>
+                                <Button text="Collapse all" press="onCollapseAll"/>
+                                <Button text="Collapse selection" press="onCollapseSelection"/>
+                                <Button text="Expand first level" press="onExpandFirstLevel"/>
+                                <Button text="Expand selection" press="onExpandSelection"/>
+                            </OverflowToolbar>
+                        </l:extension>
+                    </l:Column>
+                </l:columns>
+            </l:TreeTable>
         </f:content>
     </f:DynamicPage>
 </mvc:View>
