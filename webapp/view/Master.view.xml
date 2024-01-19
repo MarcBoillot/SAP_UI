@@ -16,16 +16,55 @@
         </f:header>
 
         <f:content>
+            <VBox>
+                <l:Table
+                        id="Table"
+                        rows="{path:'itemsModel>/', parameters: {arrayNames:['ItemCode']}}"
+                        selectionMode="MultiToggle"
+                        enableSelectAll="false"
+                        ariaLabelledBy="title">
+                    <l:extension>
+                        <OverflowToolbar style="Clear">
+                            <Title id="items" text="TOP 5 Items"/>
+                            <ToolbarSpacer/>
+                            <Button text="Collapse all" press="onCollapseAll"/>
+                            <Button text="Collapse selection" press="onCollapseSelection"/>
+                            <Button text="Expand first level" press="onExpandFirstLevel"/>
+                            <Button text="Expand selection" press="onExpandSelection"/>
+                        </OverflowToolbar>
+                    </l:extension>
+                    <l:columns>
+                        <l:Column>
+                            <Label text="ItemName"/>
+                            <l:template>
+                                <Text text="{itemsModel>ItemName}" wrapping="false"/>
+                            </l:template>
+                        </l:Column>
+                        <l:Column>
+                            <Label text="ItemGroupCode"/>
+                            <l:template>
+                                <Text text="{itemsModel>ItemsGroupCode}" wrapping="false"/>
+                            </l:template>
+                        </l:Column>
+                        <l:Column>
+                            <Label text="ECOTaxe"/>
+                            <l:template>
+                                <Text text="{itemsModel>U_OB1ECOTAXE}" wrapping="false"/>
+                            </l:template>
+                        </l:Column>
+
+                    </l:columns>
+                </l:Table>
 
             <l:TreeTable
-                         id="TreeTableBasic"
+                         id="TreeTable"
                          rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
                          selectionMode="MultiToggle"
                          enableSelectAll="false"
                          ariaLabelledBy="title">
                 <l:extension>
                     <OverflowToolbar style="Clear">
-                        <Title id="title" text="TOP 5 Orders"/>
+                        <Title id="orders" text="TOP 5 Orders"/>
                         <ToolbarSpacer/>
                         <Button text="Collapse all" press="onCollapseAll"/>
                         <Button text="Collapse selection" press="onCollapseSelection"/>
@@ -66,15 +105,25 @@
                             </ToggleButton>
                         </HBox>
                         <l:template>
-
-                            <Text text="{ordersModel>ItemDescription}" wrapping="false" />
-
+                            <Text text="{ordersModel>ItemDescription}  {ordersModel>BarCode}" wrapping="false" />
                         </l:template>
                         <!--a verifier sans -->
-
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Price"/>
+                        <l:template>
+                            <Text text="{ordersModel>PriceAfterVAT}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Total"/>
+                        <l:template>
+                            <Text text="{totalPrice}" wrapping="false"/>
+                        </l:template>
                     </l:Column>
                 </l:columns>
             </l:TreeTable>
+            </VBox>
         </f:content>
     </f:DynamicPage>
 </mvc:View>

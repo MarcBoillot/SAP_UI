@@ -37,6 +37,7 @@
       "viewName": "wwl.view.App",
       "type": "XML"
     },
+
     "dependencies": {
       "minUI5Version": "1.30.0",
       "libs": {

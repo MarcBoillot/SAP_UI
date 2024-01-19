@@ -3,11 +3,13 @@ sap.ui.define([
     'sap/ui/model/json/JSONModel',
     "sap/m/MessageBox",
     "wwl/utils/Formatter",
+
 ], function (
     BaseController,
     JSONModel,
     MessageBox,
     Formatter,
+    MessageToast,
 ) {
     "use strict"
     let Models
@@ -28,8 +30,15 @@ sap.ui.define([
 
         onRouteMatch: async function () {
             const order = await Models.Orders().top(5).get()
+            const item = await Models.Items().top(5).get()
             this._setModel(order.value, "ordersModel")
-            console.log(this._getModel("ordersModel").getData());         // /** Exemple d'une vue SQL **/
+            this._setModel(item.value,"itemsModel")
+            let totalPrice=this.calculiSommePrice(Models.Items().top(5).get())
+            console.log(totalPrice);
+            console.log(this._getModel("itemsModel").getData());
+            console.log(this._getModel("ordersModel").getData());
+
+            // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
             // console.log("transferRequest ::", transferRequest)
 
@@ -51,8 +60,8 @@ sap.ui.define([
         },
 
         onExpandFirstLevel: function() {
-            let oTreeTable = Models.Items().top(2).get()
-            this._setModel(oTreeTable.value,"itemsModel");
+            let oTreeTable = Models.Orders().top(2).get()
+            this._setModel(oTreeTable.value,"ordersModel");
             oTreeTable.expandToLevel(1);
         },
 
@@ -62,7 +71,7 @@ sap.ui.define([
             oTreeTable.expand(oTreeTable.getSelectedIndices());
         },
 
-        onPress: function (oEvent,MessageToast) {
+        onPress: function (oEvent) {
             if (oEvent.getSource().getPressed()) {
                 let msg = 'bonjour';
                 MessageToast.show(msg);
@@ -71,6 +80,15 @@ sap.ui.define([
             } else {
                 MessageToast.show(oEvent.getSource().getId() + " Unpressed");
             }
+        },
+
+        calculiSommePrice: function(itemPriceData){
+            let somme =0;
+            for(let i =0; i < itemPriceData.length; i++){
+                somme+=itemPriceData[i].prix;
+            }
+            return itemPriceData;
         }
+
     });
 });
