@@ -62,6 +62,15 @@ sap.ui.define([
             oTreeTable.expand(oTreeTable.getSelectedIndices());
         },
 
+        onPress: function (oEvent,MessageToast) {
+            if (oEvent.getSource().getPressed()) {
+                let msg = 'bonjour';
+                MessageToast.show(msg);
+                MessageToast.show(oEvent.getSource().getId() + " Pressed");
 
+            } else {
+                MessageToast.show(oEvent.getSource().getId() + " Unpressed");
+            }
+        }
     });
 });

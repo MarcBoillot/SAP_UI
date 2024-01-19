@@ -23,7 +23,16 @@
                          selectionMode="MultiToggle"
                          enableSelectAll="false"
                          ariaLabelledBy="title">
-
+                <l:extension>
+                    <OverflowToolbar style="Clear">
+                        <Title id="title" text="TOP 5 Orders"/>
+                        <ToolbarSpacer/>
+                        <Button text="Collapse all" press="onCollapseAll"/>
+                        <Button text="Collapse selection" press="onCollapseSelection"/>
+                        <Button text="Expand first level" press="onExpandFirstLevel"/>
+                        <Button text="Expand selection" press="onExpandSelection"/>
+                    </OverflowToolbar>
+                </l:extension>
                 <l:columns>
                     <l:Column>
                         <Label text="DocNum"/>
@@ -45,20 +54,24 @@
                     </l:Column>
                     <l:Column>
                         <Label text="Details Orders"/>
+                        <HBox>
+                            <ToggleButton text="Details"
+                                          enabled="true"
+                                          pressed="true"
+                                          ariaDescribedBy="acceptButtonDescription genericButtonDescription"
+                                          press="onPress" >
+                                <layoutData>
+                                    <FlexItemData growFactor="1" />
+                                </layoutData>
+                            </ToggleButton>
+                        </HBox>
                         <l:template>
+
                             <Text text="{ordersModel>ItemDescription}" wrapping="false" />
+
                         </l:template>
                         <!--a verifier sans -->
-                        <l:extension>
-                            <OverflowToolbar style="Clear">
-                                <Title id="title" text="TOP 5 Orders"/>
-                                <ToolbarSpacer/>
-                                <Button text="Collapse all" press="onCollapseAll"/>
-                                <Button text="Collapse selection" press="onCollapseSelection"/>
-                                <Button text="Expand first level" press="onExpandFirstLevel"/>
-                                <Button text="Expand selection" press="onExpandSelection"/>
-                            </OverflowToolbar>
-                        </l:extension>
+
                     </l:Column>
                 </l:columns>
             </l:TreeTable>
