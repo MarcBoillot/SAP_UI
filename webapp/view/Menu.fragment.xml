@@ -1,18 +1,45 @@
 <core:FragmentDefinition
         xmlns="sap.m"
-        xmlns:core="sap.ui.core">
-    <Menu itemSelected="onMenuAction">
-        <MenuItem text="Hide Existing Sites"/>
-        <MenuItem text="Simulate Visitor Traffic"/>
-        <MenuItem text="Create New Site">
-            <items>
-                <MenuItem text="Official Store"/>
-                <MenuItem text="Partner Store"/>
-                <MenuItem text="Franchise Store"/>
-                <MenuItem text="Temporary Store"/>
-                <MenuItem text="Other"/>
-            </items>
-        </MenuItem>
-        <MenuItem text="Export Map"/>
-    </Menu>
+        xmlns:core="sap.ui.core"
+        xmlns:l="sap.ui.table"
+        id="MenuFragment">
+    <Dialog contentWidth="500px"
+            id="helloDialog"
+            title="hello">
+        <content>
+            <Label text="ItemsCustomer"/>
+            <l:Table
+                     rows="{path:'itemsModel>/', parameters: {arrayNames:['ItemCode']}}"
+                     visibleRowCount="{itemsModel}.length">
+                <l:columns>
+                    <l:Column>
+                        <Label text="ItemName"/>
+                        <l:template>
+                            <Text text="{itemsModel>ItemName}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="ItemGroupCode"/>
+                        <l:template>
+                            <Text text="{itemsModel>ItemsGroupCode}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                </l:columns>
+            </l:Table>
+        </content>
+    </Dialog>
+<!--    <Menu itemSelected="onMenuAction">-->
+<!--        <MenuItem text="Hide Existing Sites"/>-->
+<!--        <MenuItem text="Simulate Visitor Traffic"/>-->
+<!--        <MenuItem text="Create New Site">-->
+<!--            <items>-->
+<!--                <MenuItem text="Official Store"/>-->
+<!--                <MenuItem text="Partner Store"/>-->
+<!--                <MenuItem text="Franchise Store"/>-->
+<!--                <MenuItem text="Temporary Store"/>-->
+<!--                <MenuItem text="Other"/>-->
+<!--            </items>-->
+<!--        </MenuItem>-->
+<!--        <MenuItem text="Export Map"/>-->
+<!--    </Menu>-->
 </core:FragmentDefinition>

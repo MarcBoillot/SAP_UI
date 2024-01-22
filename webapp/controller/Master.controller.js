@@ -3,9 +3,9 @@ sap.ui.define([
     'sap/ui/model/json/JSONModel',
     "sap/m/MessageBox",
     "wwl/utils/Formatter",
-    "sap/ui/core/Fragment",
     "sap/m/MessageToast",
-    "sap/m/MenuItem"
+    "sap/ui/core/Fragment"
+
 
 ], function (
     BaseController,
@@ -13,6 +13,7 @@ sap.ui.define([
     MessageBox,
     Formatter,
     MessageToast,
+    Fragment
 ) {
     "use strict"
     let Models
@@ -69,47 +70,51 @@ sap.ui.define([
         },
 
         onCollapseSelection: function () {
-            let oTreeTable = Models.Orders().top(2).get()
-            this._setModel(oTreeTable.value, "ordersModel");
+            const oTreeTable = this._byId("treeTable")
+            // let oTreeTable = Models.Orders().top(2).get()
+            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.collapse(oTreeTable.getSelectedIndices());
         },
 
         onExpandFirstLevel: function () {
-            let oTreeTable = Models.Orders().top(2).get()
-            this._setModel(oTreeTable.value, "ordersModel");
+            const oTreeTable = this._byId("treeTable")
+            // let oTreeTable = Models.Orders().top(2).get()
+            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.expandToLevel(1);
         },
 
         onExpandSelection: function () {
-            let oTreeTable = Models.Orders().top(2).get()
-            this._setModel(oTreeTable.value, "ordersModel");
+            const oTreeTable = this._byId("treeTable")
+            // let oTreeTable = Models.Orders().top(2).get()
+            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.expand(oTreeTable.getSelectedIndices());
         },
 
         getDetails: function (oEvent) {
 
             const selectedRow = oEvent.getSource().oPropagatedProperties.oBindingContexts.ordersModel.getObject()
-            Fragment.Load({})
+            Fragment.load({})
+
         },
 
         onPress: function () {
-            let oView = this.getView(),
-                oButton = oView.byId("button");
+            let that = this
 
-            if (!this._oMenuFragment) {
-                this._oMenuFragment = Fragment.load({
-                    id: oView.getId(),
-                    name: "sap.m.sample.Menu.Menu",
+            if (!this._byId("helloDialog")) {
+                Fragment.load({
+                    // id: this.oView.getId(),
+                    name: "wwl.view.Menu",
                     controller: this
                 }).then(function (oMenu) {
-                    oMenu.openBy(oButton);
-                    this._oMenuFragment = oMenu;
-                    return this._oMenuFragment;
-                }.bind(this));
+                    console.log("this ;;", that)
+                    that.oView.addDependent(oMenu);
+                    oMenu.open();
+                });
             } else {
-                this._oMenuFragment.openBy(oButton);
+                this._byId("helloDialog").open();
             }
         },
+
 
         onMenuAction: function (oEvent) {
             let oItem = oEvent.getParameter("item"),

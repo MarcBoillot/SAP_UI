@@ -26,6 +26,7 @@
                 <l:Table
                         id="Table"
                         rows="{path:'itemsModel>/', parameters: {arrayNames:['ItemCode']}}"
+                        visibleRowCount="{itemsModel}.length"
                         selectionMode="MultiToggle"
                         enableSelectAll="false"
                         ariaLabelledBy="title">
@@ -147,13 +148,13 @@
                     <l:Column>
                         <Label text="> 2000"/>
                         <l:template>
-                            <Text text="{= ${ordersModel>PriceAfterVAT} > 2000 ? 'OK' : ${ordersModel>PriceAfterVAT} < 100 ? 'NNNOK'  : 'NOK' }" wrapping="false"/>
+                            <Text text="{= ${ordersModel>PriceAfterVAT} > 2000 ? 'OK' : 'NOK' }" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column>
                         <Label text="voir détails"/>
                         <l:template>
-                            <Button text="voir détails" press="getDetails"/>
+                            <Button text="voir détails" press="onPress"/>
                         </l:template>
                     </l:Column>
                     <l:Column>
