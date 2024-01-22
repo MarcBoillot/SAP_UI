@@ -36,6 +36,7 @@
     "rootView": {
       "viewName": "wwl.view.App",
       "type": "XML"
+
     },
 
     "dependencies": {
@@ -112,6 +113,7 @@
         "files": [
           "View.view.xml",
           "Controller.controller.js",
+          "Menu.fragment.xml",
           "manifest.json"
         ]
       }

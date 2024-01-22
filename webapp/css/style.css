@@ -1,1 +1,6 @@
-/* Enter your custom styles here */
+.italicDate{
+    font-style: italic;
+}
+.redLine{
+    color:red;
+}

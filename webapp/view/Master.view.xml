@@ -2,7 +2,9 @@
           xmlns:mvc="sap.ui.core.mvc"
           xmlns:f="sap.f"
           xmlns="sap.m"
-          xmlns:l="sap.ui.table">
+          xmlns:l="sap.ui.table"
+          xmlns:core="sap.ui.core"
+          xmlns:t="sap.ui.layout.form">
 
     <f:DynamicPage>
 
@@ -16,23 +18,18 @@
         </f:header>
 
         <f:content>
+
             <VBox>
+                <VBox class="sapUiSmallMargin">
+                    <Button id="button" text="Open Menu" press="onPress" ariaHasPopup="Menu"/>
+                </VBox>
                 <l:Table
                         id="Table"
                         rows="{path:'itemsModel>/', parameters: {arrayNames:['ItemCode']}}"
                         selectionMode="MultiToggle"
                         enableSelectAll="false"
                         ariaLabelledBy="title">
-                    <l:extension>
-                        <OverflowToolbar style="Clear">
-                            <Title id="items" text="TOP 5 Items"/>
-                            <ToolbarSpacer/>
-                            <Button text="Collapse all" press="onCollapseAll"/>
-                            <Button text="Collapse selection" press="onCollapseSelection"/>
-                            <Button text="Expand first level" press="onExpandFirstLevel"/>
-                            <Button text="Expand selection" press="onExpandSelection"/>
-                        </OverflowToolbar>
-                    </l:extension>
+
                     <l:columns>
                         <l:Column>
                             <Label text="ItemName"/>
@@ -57,10 +54,11 @@
                 </l:Table>
 
             <l:TreeTable
-                         id="TreeTable"
+                         id="treeTable"
                          rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
                          selectionMode="MultiToggle"
                          enableSelectAll="false"
+                         visibleRowCount="{ordersModel.length}"
                          ariaLabelledBy="title">
                 <l:extension>
                     <OverflowToolbar style="Clear">
@@ -72,6 +70,37 @@
                         <Button text="Expand selection" press="onExpandSelection"/>
                     </OverflowToolbar>
                 </l:extension>
+
+<!--                <IconTabBar-->
+<!--                        expanded="{itemsModel>/}"-->
+<!--                        class="sapUiSmallMarginBottom sapUiResponsiveContentPadding">-->
+<!--                    <items>-->
+<!--                        <IconTabFilter-->
+<!--                                key="info"-->
+<!--                                text="Info">-->
+<!--                            <f:SimpleForm-->
+<!--                                    layout="ResponsiveGridLayout" >-->
+<!--                                <f:title>-->
+<!--                                    <core:Title text="A Form" />-->
+<!--                                </f:title>-->
+<!--                                <Label text="Label"/>-->
+<!--                                <Text text="Value"/>-->
+<!--                            </f:SimpleForm>-->
+<!--                        </IconTabFilter>-->
+<!--                        <IconTabFilter-->
+<!--                                key="attachments"-->
+<!--                                text="Attachments">-->
+<!--                            <List headerText="A List" showSeparators="Inner" >-->
+<!--                            </List>-->
+<!--                        </IconTabFilter>-->
+<!--                        <IconTabFilter-->
+<!--                                key="notes"-->
+<!--                                text="Notes">-->
+<!--                            <FeedInput />-->
+<!--                        </IconTabFilter>-->
+<!--                    </items>-->
+<!--                </IconTabBar>-->
+
                 <l:columns>
                     <l:Column>
                         <Label text="DocNum"/>
@@ -88,7 +117,7 @@
                     <l:Column>
                         <Label text="Date"/>
                         <l:template>
-                            <Text text="{ordersModel>DocDate}" wrapping="false" />
+                            <Text text="{path : 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" class="italicDate" wrapping="false" />
                         </l:template>
                     </l:Column>
                     <l:Column>
@@ -98,7 +127,7 @@
                                           enabled="true"
                                           pressed="true"
                                           ariaDescribedBy="acceptButtonDescription genericButtonDescription"
-                                          press="onPress" >
+                                          press="onExpandFirstLevel" >
                                 <layoutData>
                                     <FlexItemData growFactor="1" />
                                 </layoutData>
@@ -113,6 +142,18 @@
                         <Label text="Price"/>
                         <l:template>
                             <Text text="{ordersModel>PriceAfterVAT}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="> 2000"/>
+                        <l:template>
+                            <Text text="{= ${ordersModel>PriceAfterVAT} > 2000 ? 'OK' : ${ordersModel>PriceAfterVAT} < 100 ? 'NNNOK'  : 'NOK' }" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="voir détails"/>
+                        <l:template>
+                            <Button text="voir détails" press="getDetails"/>
                         </l:template>
                     </l:Column>
                     <l:Column>
