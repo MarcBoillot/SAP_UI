@@ -5,7 +5,7 @@ sap.ui.define([
     "wwl/utils/Formatter",
     "sap/m/MessageToast",
     "sap/ui/core/Fragment",
-    "sap/m/Dialog"
+
 
 
 ], function (
@@ -15,7 +15,7 @@ sap.ui.define([
     Formatter,
     MessageToast,
     Fragment,
-    Dialog
+
 ) {
     "use strict"
     let Models
@@ -111,6 +111,10 @@ sap.ui.define([
                 }).then(function (oMenu) {
                     console.log("this ::", that)
                     that.oView.addDependent(oMenu);
+                    oMenu.attachAfterClose(() => oMenu.destroy())
+                    oMenu.getEndButton(function (){
+                        oMenu.close()
+                    })
                     oMenu.open();
                 });
             } else {
@@ -121,11 +125,17 @@ sap.ui.define([
         },
 
         onClose: function() {
-            if(this._oDialogDetail){
-                this._oDialogDetail.Destroy();
-                delete this._oDialogDetail;
-            }
-            //this._oDialogDetail.then((oDialog)=>oDialog.close())
+            this._byId("helloDialog").close();
+            // let that = this
+            // if(this._oDialogDetail){
+            //     this._oDialogDetail.then(function (oDialog){
+            //         oDialog.close("helloDialog");
+            //         delete that._oDialogDetail;
+            //     })
+            //     // this._oDialogDetail.close("helloDialog");
+            //     // delete this._oDialogDetail;
+            // }
+            // //this._oDialogDetail.then((oDialog)=>oDialog.close())
         },
 
         onMenuAction: function (oEvent) {

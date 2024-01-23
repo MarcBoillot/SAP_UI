@@ -24,11 +24,13 @@
                             <Text text="{itemsModel>ItemsGroupCode}" wrapping="false"/>
                         </l:template>
                     </l:Column>
-
                 </l:columns>
             </l:Table>
         </content>
-        <Button text="Close" press="onClose"/>
+        <endButton>
+            <Button text="Close" press="onClose"/>
+        </endButton>
+
     </Dialog>
 <!--    <Menu itemSelected="onMenuAction">-->
 <!--        <MenuItem text="Hide Existing Sites"/>-->
