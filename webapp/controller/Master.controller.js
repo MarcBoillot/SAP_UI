@@ -4,7 +4,8 @@ sap.ui.define([
     "sap/m/MessageBox",
     "wwl/utils/Formatter",
     "sap/m/MessageToast",
-    "sap/ui/core/Fragment"
+    "sap/ui/core/Fragment",
+    "sap/m/Dialog"
 
 
 ], function (
@@ -13,7 +14,8 @@ sap.ui.define([
     MessageBox,
     Formatter,
     MessageToast,
-    Fragment
+    Fragment,
+    Dialog
 ) {
     "use strict"
     let Models
@@ -98,23 +100,33 @@ sap.ui.define([
         },
 
         onPress: function () {
+            // pour stocker la view principale et pour éviter qu'elle se perde (problème de scope)
             let that = this
 
             if (!this._byId("helloDialog")) {
-                Fragment.load({
+                this._oDialogDetail = Fragment.load({
                     // id: this.oView.getId(),
                     name: "wwl.view.Menu",
                     controller: this
                 }).then(function (oMenu) {
-                    console.log("this ;;", that)
+                    console.log("this ::", that)
                     that.oView.addDependent(oMenu);
                     oMenu.open();
                 });
             } else {
-                this._byId("helloDialog").open();
+                this._oDialogDetail.then(function (oDialog){
+                    oDialog.open();
+                })
             }
         },
 
+        onClose: function() {
+            if(this._oDialogDetail){
+                this._oDialogDetail.Destroy();
+                delete this._oDialogDetail;
+            }
+            //this._oDialogDetail.then((oDialog)=>oDialog.close())
+        },
 
         onMenuAction: function (oEvent) {
             let oItem = oEvent.getParameter("item"),
@@ -136,7 +148,9 @@ sap.ui.define([
                 somme += itemPriceData[i].prix;
             }
             return itemPriceData;
-        }
+        },
+
+
 
     });
 });
