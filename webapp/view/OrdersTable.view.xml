@@ -14,9 +14,8 @@
             </f:DynamicPageHeader>
         </f:header>
         <f:content>
-            <Button text="MasterView" press="onMasterView"/>
             <l:Table
-                    id="Table"
+                    id="table"
                     rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
                     visibleRowCount="{ordersModel}.length"
                     selectionMode="MultiToggle"
@@ -25,10 +24,22 @@
                 <l:extension>
                     <OverflowToolbar style="Clear">
                         <Button text="Master" press="onMasterView"/>
+                        <Button text="See details of selection" />
                     </OverflowToolbar>
                 </l:extension>
                 <l:columns>
                     <l:Column width="100px">
+                        <HBox>
+                            <ToggleButton text="Details"
+                                          enabled="true"
+                                          pressed="true"
+                                          ariaDescribedBy="acceptButtonDescription genericButtonDescription"
+                                          press="onExpandSelection">
+                                <layoutData>
+                                    <FlexItemData growFactor="1"/>
+                                </layoutData>
+                            </ToggleButton>
+                        </HBox>
                         <Label text="DocEntry"/>
                         <l:template>
                             <Text text="{ordersModel>DocEntry}" wrapping="false" />
@@ -40,16 +51,28 @@
                             <Text text="{ordersModel>CardName} ({ordersModel>CardCode})" wrapping="false" />
                         </l:template>
                     </l:Column>
+                    <l:Column width="100px">
+                        <Label text="Date"/>
+                        <l:template>
+                            <Text text="{path : 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" wrapping="false" />
+                        </l:template>
+                    </l:Column>
                     <l:Column>
                         <Label text="Price "/>
                         <l:template>
-                            <Text text="{ordersModel>PriceAfterVAT}" wrapping="false"/>
+                            <Text text="{ordersModel>PriceAfterVAT} {ordersModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column>
                         <Label text="Qty "/>
                         <l:template>
                             <Text text="{ordersModel>Quantity}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column width="100px">
+                        <Label text="Button"/>
+                        <l:template>
+                            <Button text="itemsView" press="onExpandSelection"/>
                         </l:template>
                     </l:Column>
                 </l:columns>

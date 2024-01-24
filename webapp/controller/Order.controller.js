@@ -1,19 +1,26 @@
 sap.ui.define([
         "./BaseController",
         'sap/ui/model/json/JSONModel',
-        "sap/m/MessageBox"
+        "sap/m/MessageBox",
+        "wwl/utils/Formatter",
+        "sap/m/MessageToast",
+        "sap/ui/core/Fragment",
 
 ], function (
         BaseController,
         JSONModel,
         MessageBox,
+        Formatter,
+        MessageToast,
+        Fragment
+
     ){
         "use strict"
         let Models
         let Views
 
     return BaseController.extend("wwl.controller.Order",{
-            // Formatter: Formatter,
+            Formatter: Formatter,
 
             onInit: function () {
                 Models = this.getOwnerComponent().ConfModel;
@@ -27,10 +34,17 @@ sap.ui.define([
         onRouteMatch: async function () {
             const order = await Models.Orders().top(5).get()
             const item = await Models.Items().top(5).get()
+            let formattedOrders = []
+            order.value.forEach((order => {
+                formattedOrders.push({
+                    Key: order.DocumentLines,
+                })
+            }))
             this._setModel(order.value, "ordersModel")
             this._setModel(item.value, "itemsModel")
             console.log(this._getModel("itemsModel").getData());
             console.log(this._getModel("ordersModel").getData());
+            console.log("Orders:", formattedOrders)
 
             // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
@@ -43,6 +57,42 @@ sap.ui.define([
         onMasterView: function (){
             this.getOwnerComponent().getRouter().navTo('Master')
         },
+
+        onExpandSelection: function (oEvent) {
+            // const selectedRow = oEvent.getSource().oPropagatedProperties.oBindingContexts.ordersModel.getObject()
+            // selectedRow.expand(selectedRow.getSelectedIndices());
+            let that = this
+            if (!this._byId("itemsDialog")) {
+                this._oDialogDetail = Fragment.load({
+                    // id: this.oView.getId(),
+                    name: "wwl.view.Items",
+                    controller: this
+                }).then(function (oItems) {
+                    that.oView.addDependent(oItems);
+                    oItems.attachAfterClose(() => oItems.destroy())
+                    oItems.getEndButton(function (){
+                        oItems.close()
+                    })
+                    oItems.open();
+                });
+            } else {
+                this._oDialogDetail.then(function (oDialog){
+                    oDialog.open();
+                })
+            }
+            // const table = this._byId("table")
+            // table.expand(table.getSelectedIndices());
+        },
+
+        onExpandFirstLevel: function () {
+            const oTreeTable = this._byId("table")
+            oTreeTable.expandToLevel(1);
+        },
+
+        onClose: function() {
+            this._byId("itemsDialog").close();
+        },
+
         onGet: async function (){
             this._getModel(this._getModel( "itemsModel").getData());
         },

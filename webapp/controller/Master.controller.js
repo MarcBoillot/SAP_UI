@@ -69,17 +69,6 @@ sap.ui.define([
         onRouteMatch: async function () {
             const order = await Models.Orders().top(5).get()
             const item = await Models.Items().top(5).get()
-
-            let formattedOrders = []
-            order.value.forEach((order => {
-                formattedOrders.push({
-                    key1: order.DocNum,
-                    key2: order.DocEntry,
-                    key3: order.DocumentLines
-                })
-            }))
-
-            console.log("formattedOrders ::", formattedOrders)
             this._setModel(order.value, "ordersModel")
             this._setModel(item.value, "itemsModel")
             let totalPrice = this.calculiSommePrice(Models.Items().top(5).get())
@@ -100,6 +89,7 @@ sap.ui.define([
 
             // let currentPage = that.getOwnerComponent().getRouter().oHashChanger._oActiveRouter._oMatchedRoute._oConfig.name
             // this.handleViewOnNavigation()
+
             this.getOwnerComponent().getRouter().navTo('OrdersTable')
 
             // Models = this.getOwnerComponent().ConfModel;
@@ -112,29 +102,21 @@ sap.ui.define([
 
         onCollapseAll: function () {
             const oTreeTable = this._byId("treeTable")
-            // let allOrders = Models.Orders().top(2).get()
-            // this._setModel(allOrders.value,"ordersModel");
             oTreeTable.collapseAll();
         },
 
         onCollapseSelection: function () {
             const oTreeTable = this._byId("treeTable")
-            // let oTreeTable = Models.Orders().top(2).get()
-            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.collapse(oTreeTable.getSelectedIndices());
         },
 
         onExpandFirstLevel: function () {
             const oTreeTable = this._byId("treeTable")
-            // let oTreeTable = Models.Orders().top(2).get()
-            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.expandToLevel(1);
         },
 
         onExpandSelection: function () {
             const oTreeTable = this._byId("treeTable")
-            // let oTreeTable = Models.Orders().top(2).get()
-            // this._setModel(oTreeTable.value, "ordersModel");
             oTreeTable.expand(oTreeTable.getSelectedIndices());
         },
 
