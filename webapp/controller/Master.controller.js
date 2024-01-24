@@ -5,7 +5,11 @@ sap.ui.define([
     "wwl/utils/Formatter",
     "sap/m/MessageToast",
     "sap/ui/core/Fragment",
-
+    'sap/ui/unified/DateRange',
+    'sap/ui/core/format/DateFormat',
+    'sap/ui/core/library',
+    'sap/ui/core/date/UI5Date',
+    "sap/ui/core/routing/History"
 
 
 ], function (
@@ -15,23 +19,51 @@ sap.ui.define([
     Formatter,
     MessageToast,
     Fragment,
+    DateRange,
+    DateFormat,
+    coreLibrary,
+    UI5Date,
+    History
 
 ) {
     "use strict"
     let Models
     let Views
+    let CalendarType = coreLibrary.CalendarType;
 
-    return BaseController.extend("wwl.controller.Master", {
+    return BaseController.extend("wwl.controller.Master",{
         Formatter: Formatter,
+        oFormatYyyymmdd: null,
 
         onInit: function () {
             Models = this.getOwnerComponent().ConfModel;
             Views = this.getOwnerComponent().ViewsModel;
-
+            this.oFormatYyyymmdd = DateFormat.getInstance({pattern: "yyyy-MM-dd", calendarType: CalendarType.Gregorian});
             this.getOwnerComponent().getRouter()
                 .getRoute("Master")
                 .attachMatched(this.onRouteMatch, this)
 
+        },
+
+        handleCalendarSelect: function(oEvent) {
+            let oCalendar = oEvent.getSource();
+            this._updateText(oCalendar);
+        },
+
+        _updateText: function(oCalendar) {
+            let oText = this.byId("selectedDate"),
+                aSelectedDates = oCalendar.getSelectedDates(),
+                oDate = aSelectedDates[0].getStartDate();
+
+            oText.setText(this.oFormatYyyymmdd.format(oDate));
+        },
+
+        handleSelectToday: function() {
+            let oCalendar = this.byId("calendar");
+
+            oCalendar.removeAllSelectedDates();
+            oCalendar.addSelectedDate(new DateRange({startDate: UI5Date.getInstance()}));
+            this._updateText(oCalendar);
         },
 
         onRouteMatch: async function () {
@@ -62,6 +94,20 @@ sap.ui.define([
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
+        },
+
+        onOrdersView: function (oEvent) {
+
+            // let currentPage = that.getOwnerComponent().getRouter().oHashChanger._oActiveRouter._oMatchedRoute._oConfig.name
+            // this.handleViewOnNavigation()
+            this.getOwnerComponent().getRouter().navTo('OrdersTable')
+
+            // Models = this.getOwnerComponent().ConfModel;
+            // Views = this.getOwnerComponent().ViewsModel;
+            // this.getOwnerComponent().getRouter()
+            //     .getRoute("OrdersView")
+            // let oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+            // oRouter.navTo("OrdersTable");
         },
 
         onCollapseAll: function () {
@@ -124,19 +170,29 @@ sap.ui.define([
             }
         },
 
-        onClose: function() {
-            this._byId("helloDialog").close();
-            // let that = this
-            // if(this._oDialogDetail){
-            //     this._oDialogDetail.then(function (oDialog){
-            //         oDialog.close("helloDialog");
-            //         delete that._oDialogDetail;
-            //     })
-            //     // this._oDialogDetail.close("helloDialog");
-            //     // delete this._oDialogDetail;
-            // }
-            // //this._oDialogDetail.then((oDialog)=>oDialog.close())
-        },
+
+        // open: function() {
+        //    let oView = this._oView;
+        //    if(!oView.byId("helloDialog")){
+        //        let oFragmentController = {
+        //            onCloseDialog: function(){
+        //                oView.byId("helloDialog").close();
+        //            }
+        //        }
+        //
+        //        Fragment.load({
+        //            id: oView.getId(),
+        //            name: "wwl.view.Menu",
+        //            controller: oFragmentController
+        //        }).then(function (oDialog) {
+        //            oView.addDependent(oDialog);
+        //            oDialog.open();
+        //        })
+        //    } else{
+        //        oView.byId("helloDialog").open();
+        //    }
+        //
+        // },
 
         onMenuAction: function (oEvent) {
             let oItem = oEvent.getParameter("item"),
@@ -159,8 +215,9 @@ sap.ui.define([
             }
             return itemPriceData;
         },
-
-
+        onClose: function() {
+            this._byId("helloDialog").close();
+        }
 
     });
 });

@@ -1,0 +1,64 @@
+<mvc:View controllerName="wwl.controller.Order"
+          xmlns:mvc="sap.ui.core.mvc"
+          xmlns:f="sap.f"
+          xmlns="sap.m"
+          xmlns:l="sap.ui.table"
+         >
+    <f:DynamicPage id="item" title="{ordersModel>/}" showNavButton="true" navButtonPress="handleNavButtonPress">
+        <f:header>
+            <f:DynamicPageHeader pinnable="false">
+                <FlexBox alignItems="Center" justifyContent="SpaceBetween">
+                    <Title text="Template de base" titleStyle="H2" class="sapUiSmallMarginBegin"/>
+                    <Image src="./img/seidor-logo1.png" height="42px"/>
+                </FlexBox>
+            </f:DynamicPageHeader>
+        </f:header>
+        <f:content>
+            <Button text="MasterView" press="onMasterView"/>
+            <l:Table
+                    id="Table"
+                    rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
+                    visibleRowCount="{ordersModel}.length"
+                    selectionMode="MultiToggle"
+                    enableSelectAll="false"
+                    ariaLabelledBy="title">
+                <l:extension>
+                    <OverflowToolbar style="Clear">
+                        <Button text="Master" press="onMasterView"/>
+                    </OverflowToolbar>
+                </l:extension>
+                <l:columns>
+                    <l:Column width="100px">
+                        <Label text="DocEntry"/>
+                        <l:template>
+                            <Text text="{ordersModel>DocEntry}" wrapping="false" />
+                        </l:template>
+                    </l:Column>
+                    <l:Column width="250px">
+                        <Label text="Orders"/>
+                        <l:template>
+                            <Text text="{ordersModel>CardName} ({ordersModel>CardCode})" wrapping="false" />
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Price "/>
+                        <l:template>
+                            <Text text="{ordersModel>PriceAfterVAT}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Qty "/>
+                        <l:template>
+                            <Text text="{ordersModel>Quantity}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                </l:columns>
+            </l:Table>
+
+
+        </f:content>
+
+    </f:DynamicPage>
+
+
+</mvc:View>

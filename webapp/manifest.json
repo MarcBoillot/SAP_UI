@@ -102,6 +102,11 @@
           "pattern": "Item",
           "name": "Item",
           "view": "Item"
+        },
+        {
+          "pattern": "OrdersTable",
+          "name": "OrdersTable",
+          "view": "OrdersTable"
         }
 
 
