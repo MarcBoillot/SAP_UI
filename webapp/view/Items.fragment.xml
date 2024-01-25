@@ -2,12 +2,21 @@
         xmlns="sap.m"
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
+        xmlns:x="sap.ui.layout"
+        xmlns:w="sap.ui.webc.main"
         id="ItemsFragment">
     <Dialog contentWidth="1000px"
             id="itemsDialog"
             title="ITEMS">
         <content>
-            <Label text="ItemsCustomer"/>
+            <Label text=""/>
+
+                <OverflowToolbar style="Clear">
+                    <Title id="items" text="ItemsCustomer"/>
+                    <ToolbarSpacer/>
+                    <Button text="create" press="handleOpen"/>
+                </OverflowToolbar>
+
             <l:Table
                     rows="{path:'fragmentModel>/selectedRow/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
                     visibleRowCount="{ordersModel}.length">
@@ -18,16 +27,28 @@
                             <Text text="{fragmentModel>ItemDescription}  ({fragmentModel>BarCode})" wrapping="false" />
                         </l:template>
                     </l:Column>
-                    <l:Column>
+                    <l:Column width="100px">
                         <Label text="Price"/>
                         <l:template>
                             <Text text="{fragmentModel>PriceAfterVAT} {fragmentModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
-                    <l:Column>
+                    <l:Column width="50px">
                         <Label text="Qty"/>
                         <l:template>
                             <Text text="{fragmentModel>Quantity}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column width="100px">
+                        <Label text="Modify"/>
+                        <l:template>
+                            <Button text="modify" press="onModify"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column width="100px">
+                        <Label text="Delete"/>
+                        <l:template>
+                            <Button text="-" press="onDelete"/>
                         </l:template>
                     </l:Column>
                 </l:columns>

@@ -1,0 +1,24 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:f="sap.f"
+        xmlns:core="sap.ui.core"
+        xmlns:l="sap.ui.table"
+        id="ItemsFragment">
+    <Dialog contentWidth="1000px"
+            id="helloPopover"
+            title="ADD NEW ITEMS">
+        <Label text="Entrer un Name"/>
+        <Input placeholer="enter"/>
+
+        <Label text="Entrer un Prix"/>
+        <Input placeholer="enter"/>
+
+        <Label text="Entrer une Devise"/>
+        <Input placeholer="enter"/>
+
+        <Label text="Entrer une Quantité"/>
+        <Input placeholer="enter"/>
+
+
+    </Dialog>
+</core:FragmentDefinition>
