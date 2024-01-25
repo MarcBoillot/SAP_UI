@@ -62,12 +62,9 @@ sap.ui.define([
         onExpandSelection: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             console.log("selectedRow",selectedRow)
-            const itemsModelData = this.getView().getModel("ordersModel").getData()
-            // selectedRow.expand(selectedRow.getSelectedIndices());
             let that = this
             if (!this._byId("itemsDialog")) {
                 this._oDialogDetail = Fragment.load({
-                    // id: this.oView.getId(),
                     name: "wwl.view.Items",
                     controller: this
                 }).then(function (oItems) {
@@ -77,6 +74,7 @@ sap.ui.define([
                     oItems.getEndButton(function (){
                         oItems.close()
                     });
+                    // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
                     that._setModel({
                         selectedRow: selectedRow,
                     }, "fragmentModel");
@@ -93,29 +91,53 @@ sap.ui.define([
             }
         },
 
-        onExpandFirstLevel: function () {
-            const oTreeTable = this._byId("table")
-            oTreeTable.expandToLevel(1);
-        },
-
         onClose: function() {
             this._byId("itemsDialog").close();
         },
 
-        onGet: async function (){
-            this._getModel(this._getModel( "itemsModel").getData());
+        handleOpen: function () {
+            let that = this
+            if (!this._byId("helloPopover")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.CreateItem",
+                    controller: this
+                }).then(function (oNewItems) {
+
+                    that.oView.addDependent(oNewItems);
+                    oNewItems.attachAfterClose(() => oNewItems.destroy())
+                    oNewItems.getEndButton(function (){
+                        oNewItems.close()
+                    });
+                    oNewItems.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog){
+                    oDialog.open();
+                })
+            }
+        },
+
+        handleClose: function () {
+            this._byId("helloPopover").close();
         },
 
         onPost: function(){
-            Models.Orders().post({})
+            Models.Orders().post({
+                name : DocName,
+                price: PriceTVA,
+                quantity: Quantity
+
+            }).then(function (){
+
+            })
         },
 
-        onPut: function(){
-            put()
+        onPatch: function(){
+            patch()
         },
 
         onDelete: function (){
-            // delete ();
+             close ();
         }
 
     })
