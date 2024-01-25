@@ -54,13 +54,11 @@ sap.ui.define([
             let oText = this.byId("selectedDate"),
                 aSelectedDates = oCalendar.getSelectedDates(),
                 oDate = aSelectedDates[0].getStartDate();
-
             oText.setText(this.oFormatYyyymmdd.format(oDate));
         },
 
         handleSelectToday: function() {
             let oCalendar = this.byId("calendar");
-
             oCalendar.removeAllSelectedDates();
             oCalendar.addSelectedDate(new DateRange({startDate: UI5Date.getInstance()}));
             this._updateText(oCalendar);
@@ -152,6 +150,9 @@ sap.ui.define([
             }
         },
 
+        onClose: function() {
+            this._byId("helloDialog").close();
+        },
 
         // open: function() {
         //    let oView = this._oView;
@@ -197,9 +198,6 @@ sap.ui.define([
             }
             return itemPriceData;
         },
-        onClose: function() {
-            this._byId("helloDialog").close();
-        }
 
     });
 });

@@ -3,31 +3,31 @@
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
         id="ItemsFragment">
-    <Dialog contentWidth="500px"
+    <Dialog contentWidth="1000px"
             id="itemsDialog"
             title="ITEMS">
         <content>
             <Label text="ItemsCustomer"/>
             <l:Table
-                    rows="{path:'itemsModel>/', parameters: {arrayNames:['ItemCode']}}"
-                    visibleRowCount="{itemsModel}.length">
+                    rows="{path:'fragmentModel>/selectedRow/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
+                    visibleRowCount="{ordersModel}.length">
                 <l:columns>
                     <l:Column>
                         <Label text="Name"/>
                         <l:template>
-                            <Text text="{ordersModel>ItemDescription}  {ordersModel>BarCode}" wrapping="false" />
+                            <Text text="{fragmentModel>ItemDescription}  ({fragmentModel>BarCode})" wrapping="false" />
                         </l:template>
                     </l:Column>
                     <l:Column>
                         <Label text="Price"/>
                         <l:template>
-                            <Text text="{ordersModel>PriceAfterVAT} {ordersModel>Currency}" wrapping="false"/>
+                            <Text text="{fragmentModel>PriceAfterVAT} {fragmentModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column>
                         <Label text="Qty"/>
                         <l:template>
-                            <Text text="{ordersModel>Quantity}" wrapping="false"/>
+                            <Text text="{fragmentModel>Quantity}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                 </l:columns>
