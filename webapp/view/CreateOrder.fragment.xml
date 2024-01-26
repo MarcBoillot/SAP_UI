@@ -1,35 +1,65 @@
 <core:FragmentDefinition
         xmlns="sap.m"
+        xmlns:f="sap.f"
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
-        id="MenuFragment">
-    <Dialog contentWidth="500px"
-            id="helloDialog"
-            title="hello">
-        <content>
-            <Page>
+        id="CreateOrderFragment">
+    <Dialog contentWidth="1000px"
+            id="createOrderDialog"
+            title="ADD NEW ORDERS">
+<!--        <Label text="Entrer un Numéro d'Order"/>-->
+<!--        <Input value="{/DocEntry}" placeholder="6578"/>-->
 
-            </Page>
-            <Label text="ItemsCustomer"/>
-        </content>
+<!--        <Label text="Entrer un NOM"/>-->
+<!--        <Input value="{/CardName}" placeholder="Exemple : RUEFF JDD "/>-->
+
+        <Label text="Entrer un CODE POSTAL"/>
+        <Input value="{/CardCode}" placeholder="Exemple : 07500 "/>
+<VBox>
+    <HBox>
+        <Label  text="Select a DocEntry"/>
+        <Select
+
+                width="500px"
+                forceSelection="false"
+                selectedKey="{/oders}"
+                items="{
+						path: '/ordersModel',
+						sorter: { path: 'Name' }
+					}">
+
+            <core:Item key="{ordersModel>DocEntry}" text="{Name}" />
+        </Select>
+    </HBox>
+    <HBox>
+        <Label  text="Select an Item"/>
+        <Select
+                width="500px"
+                forceSelection="false"
+                selectedKey="{/SelectedProduct}"
+                items="{
+						path: '/ordersModel',
+						sorter: { path: 'Name' }
+					}">
+
+            <core:Item key="{ordersModel>DocName}" text="{Name}" />
+        </Select>
+    </HBox>
+</VBox>
+
+
+
+
+
+<!--        <Label text="Entrer une DATE"/>-->
+<!--&lt;!&ndash;        <Input value="{path: 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" placeholder="Exemple : 19/12/2024 "/>&ndash;&gt;-->
+<!--        <Input value="{/DocDueDate}" placeholder="Exemple : 19/12/2024 "/>-->
+
+
+
         <endButton>
-            <Button text="Valide" press="onValide"/>
-            <Button text="Close" press="onClose"/>
+            <Button text="Post" press="onPost"/>
         </endButton>
 
     </Dialog>
-    <!--    <Menu itemSelected="onMenuAction">-->
-    <!--        <MenuItem text="Hide Existing Sites"/>-->
-    <!--        <MenuItem text="Simulate Visitor Traffic"/>-->
-    <!--        <MenuItem text="Create New Site">-->
-    <!--            <items>-->
-    <!--                <MenuItem text="Official Store"/>-->
-    <!--                <MenuItem text="Partner Store"/>-->
-    <!--                <MenuItem text="Franchise Store"/>-->
-    <!--                <MenuItem text="Temporary Store"/>-->
-    <!--                <MenuItem text="Other"/>-->
-    <!--            </items>-->
-    <!--        </MenuItem>-->
-    <!--        <MenuItem text="Export Map"/>-->
-    <!--    </Menu>-->
 </core:FragmentDefinition>
