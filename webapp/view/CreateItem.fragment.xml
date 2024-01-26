@@ -8,17 +8,24 @@
             id="helloPopover"
             title="ADD NEW ITEMS">
         <Label text="Entrer un Name"/>
-        <Input placeholer="enter"/>
+        <Input value="{/ItemDescription}" placeholder="Maintenance srv HANA"/>
 
         <Label text="Entrer un Prix"/>
-        <Input placeholer="enter"/>
+        <Input value="{/PriceAfterVAT}" placeholder="Exemple : 152.01 "/>
 
         <Label text="Entrer une Devise"/>
-        <Input placeholer="enter"/>
+        <Input value="{/Currency}" placeholder="Exemple : EUR "/>
 
         <Label text="Entrer une Quantité"/>
-        <Input placeholer="enter"/>
+        <Input value="{/Quantity}" placeholder="Exemple : 45 "/>
 
+
+
+
+
+        <endButton>
+            <Button text="Post" press="onPatchOrder"/>
+        </endButton>
 
     </Dialog>
 </core:FragmentDefinition>

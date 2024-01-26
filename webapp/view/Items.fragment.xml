@@ -10,13 +10,9 @@
             title="ITEMS">
         <content>
             <Label text=""/>
-
-                <OverflowToolbar style="Clear">
-                    <Title id="items" text="ItemsCustomer"/>
-                    <ToolbarSpacer/>
-                    <Button text="create" press="handleOpen"/>
-                </OverflowToolbar>
-
+            <OverflowToolbar style="Clear">
+                <Button text="Add Item" press="createItemDialog"/>
+            </OverflowToolbar>
             <l:Table
                     rows="{path:'fragmentModel>/selectedRow/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
                     visibleRowCount="{ordersModel}.length">
@@ -42,7 +38,7 @@
                     <l:Column width="100px">
                         <Label text="Modify"/>
                         <l:template>
-                            <Button text="modify" press="onModify"/>
+                            <Button text="modify" press="onPatchItem"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">
