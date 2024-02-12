@@ -3,28 +3,31 @@
         xmlns:f="sap.f"
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
-        id="ItemsFragment">
+        id="UpdateItemsFragment">
     <Dialog contentWidth="1000px"
-            id="helloPopover"
-            title="ADD NEW ITEMS">
-        <Label text="Entrer un Name"/>
-        <Input value="{/ItemDescription}" placeholder="Maintenance srv HANA"/>
-
-        <Label text="Entrer un Prix"/>
-        <Input value="{/PriceAfterVAT}" placeholder="Exemple : 152.01 "/>
-
-        <Label text="Entrer une Devise"/>
-        <Input value="{/Currency}" placeholder="Exemple : EUR "/>
+            id="AdditemToOrder"
+            title="ADD A ITEM">
+        <HBox>
+            <Label  text="Select an ItemName"/>
+            <Select
+                    id="selectedItem"
+                    width="500px"
+                    forceSelection="true"
+                    selectedKey="{itemsModel>/ItemName}"
+                    items="{
+						path: 'itemsModel>/',
+						sorter: { path: 'ItemName' }
+					}"
+            >
+                <core:Item key="{itemsModel>ItemName}" text="{itemsModel>ItemName}" />
+            </Select>
+        </HBox>
 
         <Label text="Entrer une Quantité"/>
-        <Input value="{/Quantity}" placeholder="Exemple : 45 "/>
-
-
-
-
+        <Input value="{itemsModel>Quantity}" placeholder="Exemple : 45 "/>
 
         <endButton>
-            <Button text="Post" press="onPatchOrder"/>
+            <Button text="PATCH_ORDER" press="onPostItem"/>
         </endButton>
 
     </Dialog>

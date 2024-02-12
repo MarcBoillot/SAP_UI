@@ -39,8 +39,8 @@ sap.ui.define([
 
         onRouteMatch: async function () {
             const order = await Models.Orders().top(5).get()
-            const item = await Models.Items().top(5).get()
-            const BusinessPartners = await Models.BusinessPartners().top(5).get()
+            const item = await Models.Items().top(10).get()
+            const BusinessPartners = await Models.BusinessPartners().top(10).get()
             // let formattedOrders = []
             // order.value.forEach((order => {
             //     formattedOrders.push({
@@ -49,8 +49,10 @@ sap.ui.define([
             // }))
             this._setModel(order.value, "ordersModel")
             this._setModel(item.value, "itemsModel")
-            console.log(this._getModel("itemsModel").getData());
-            console.log(this._getModel("ordersModel").getData());
+            this._setModel(BusinessPartners.value,"BusinessPartnersModel")
+            console.log("top 10 items : ",this._getModel("itemsModel").getData());
+            console.log("top 5 orders : ",this._getModel("ordersModel").getData());
+            console.log("top 10 clients : ",this._getModel("BusinessPartnersModel").getData());
             // console.log("Orders:", formattedOrders)
 
             // /** Exemple d'une vue SQL **/
@@ -65,11 +67,12 @@ sap.ui.define([
         onMasterView: function () {
             this.getOwnerComponent().getRouter().navTo('Master')
         },
-
+// ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             console.log("selectedRow", selectedRow)
             let that = this
+            // ensuite je charge le fragment pour afficher la vue des elements que contient l'order selected
             if (!this._byId("itemsDialog")) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.Items",
@@ -185,21 +188,37 @@ sap.ui.define([
         },
 
         onPatchOrder: function (oEvent) {
+            let that = this
+
             let oModel = this.getView().getModel();
-            let sItemDescription = oModel.getProperty("/ItemDescription");
-            let sPriceAfterVAT = oModel.getProperty("/PriceAfterVAT");
-            let sCurrency = oModel.getProperty("/Currency");
-            let sQuantity = oModel.getProperty("/Quantity");
+            let selectedLine = oEvent.getSource().getBindingContext("fragmentModel").getObject();
+            console.log("selectedLine",selectedLine);
 
-            let sDocEntry = oEvent.getSource().getBindingContext("ordersModel").getObject();
+            if(!this._byId("UpdateItemFragment")){
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.UpdateItem",
+                    controller: this
+                }).then(function (oNewItems) {
 
-            // Recherchez l'order dans le modèle par son DocEntry
-            let aOrders = oModel.getProperty("/orders");
-            let oOrder = aOrders.find(function (order) {
-                return order.DocEntry === sDocEntry;
-            });
-            if (oOrder) {
-                oOrder.Items.push({
+                    that.oView.addDependent(oNewItems);
+                    oNewItems.attachAfterClose(() => oNewItems.destroy())
+                    oNewItems.getEndButton(function () {
+                        oNewItems.close()
+                    });
+                    oNewItems.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
+            let aItems = oModel.getProperty("/Items");
+            if (aItems) {
+                let sItemDescription = oModel.getProperty("/ItemDescription");
+                let sPriceAfterVAT = oModel.getProperty("/PriceAfterVAT");
+                let sCurrency = oModel.getProperty("/Currency");
+                let sQuantity = oModel.getProperty("/Quantity");
+                aItems.Items.push({
                     ItemDescription: sItemDescription,
                     PriceAfterVAT: sPriceAfterVAT,
                     Currency: sCurrency,
@@ -207,18 +226,58 @@ sap.ui.define([
                 });
 
                 // Effectuez la requête PATCH pour mettre à jour l'ordre
-                Models.Orders().patch(oOrder).then(function () {
+                Models.Orders().patch(aItems).then(function () {
                     console.log("PATCH successful");
                 }).catch(function (error) {
                     console.error("PATCH failed", error);
                 });
             } else {
-                console.error("Order not found");
+                console.error("Item not found");
             }
         },
-        onPatchItem: function () {
+        onPostItem: function() {
 
+            const sSelectedKey = this.getView().getModel("itemsModel").getProperty("/ItemName");
+            const oSelectedItem = this.getView().getModel("itemsModel").getProperty(`/itemsModel>${sSelectedKey}`);
+
+            console.log("itemsModel : ",this.getView().getModel("itemsModel").getData());
+            console.log("Selected Key:", sSelectedKey);
+            if (oSelectedItem) {
+                // Creation d'un nouvel item avec le nom et la quantity
+                const oNewItem = {
+                    ItemName: oSelectedItem.ItemName,
+                    Quantity: this.getView().getModel("itemsModel").getProperty("/Quantity")
+                };
+                const oOrderModel = this.getView().getModel("ordersModel");
+                if (oOrderModel) {
+                    const oOrder = oOrderModel.getData();
+
+                    // Ensure the order has an 'Items' array
+                    if (!oOrder.Items) {
+                        oOrder.Items = [];
+                    }
+
+                    // je push le nouvel item dans le model de l'order
+                    oOrder.Items.push(oNewItem);
+                   // j'utilise la methode patch
+                    Models.Orders().patch(oOrder).then(function() {
+                        console.log("Item added to order successfully");
+                    }).catch(function(error) {
+                        console.error("Failed to add item to order", error);
+                    });
+                    // Close the dialog or handle any other UI logic
+                    this.byId("AdditemToOrder").close();
+                } else {
+                    console.error("Orders model not found");
+                }
+            } else {
+                console.error("Selected item not found");
+            }
         },
+
+
+
+
 
 
         onDelete: function () {
