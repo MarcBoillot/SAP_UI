@@ -22,7 +22,7 @@
 
                 width="500px"
                 forceSelection="false"
-                selectedKey="{/oders}"
+                selectedKey="{/orders}"
                 items="{
 						path: '/ordersModel',
 						sorter: { path: 'Name' }

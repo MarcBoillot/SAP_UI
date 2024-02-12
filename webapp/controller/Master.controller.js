@@ -71,8 +71,8 @@ sap.ui.define([
             this._setModel(item.value, "itemsModel")
             let totalPrice = this.calculiSommePrice(Models.Items().top(5).get())
             console.log(totalPrice);
-            console.log(this._getModel("itemsModel").getData());
-            console.log(this._getModel("ordersModel").getData());
+            console.log("top 5 items : ",this._getModel("itemsModel").getData());
+            console.log("top 5 orders : ",this._getModel("ordersModel").getData());
 
             // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()

@@ -1,0 +1,33 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        id="UpdateItemsFragment">
+    <Dialog contentWidth="1000px" id="helloPopover" title="UPDATE ITEM">
+        <HBox>
+            <Label text="Select an ItemName"/>
+            <Select
+                    width="500px"
+                    forceSelection="true"
+                    selectedKey="{itemsModel>/ItemName}"
+                    items="{
+                    path: 'itemsModel>/items',
+                    sorter: { path: 'ItemName' }
+                }"
+            >
+                <core:Item key="{itemsModel>ItemName}" text="{itemsModel>ItemName}" />
+            </Select>
+        </HBox>
+        <Label text="Enter a Price"/>
+        <Input value="{itemsModel>PriceAfterVAT}" placeholder="{itemsModel>PriceAfterVAT}"/>
+
+        <Label text="Enter a Currency"/>
+        <Input value="{itemsModel>Currency}" placeholder="Example: EUR"/>
+
+        <Label text="Enter a Quantity"/>
+        <Input value="{itemsModel>Quantity}" placeholder="Example: 45"/>
+
+        <endButton>
+            <Button text="PATCH" press="onPatchItem2"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

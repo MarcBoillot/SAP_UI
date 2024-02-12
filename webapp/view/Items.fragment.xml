@@ -38,7 +38,7 @@
                     <l:Column width="100px">
                         <Label text="Modify"/>
                         <l:template>
-                            <Button text="modify" press="onPatchItem"/>
+                            <Button text="modify" press="onPatchOrder"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">
