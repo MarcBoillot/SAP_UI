@@ -65,7 +65,7 @@ sap.ui.define([
         },
 
         onRouteMatch: async function () {
-            const order = await Models.Orders().top(5).get()
+            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").top(5).get()
             const item = await Models.Items().top(5).get()
             this._setModel(order.value, "ordersModel")
             this._setModel(item.value, "itemsModel")

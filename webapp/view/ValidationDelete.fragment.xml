@@ -1,0 +1,19 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:f="sap.f"
+        xmlns:core="sap.ui.core"
+        xmlns:l="sap.ui.table"
+        id="DeleteItemFragment">
+    <Dialog contentWidth="500px"
+            id="deleteItem"
+            title="CONFIRMATION TO DELETE ITEM">
+
+        <Text text="Etes vous sure de vouloir supprimer cette élément de la commande ?"/>
+
+
+        <endButton>
+            <Button text="YES" press="onDeleteItem"/>
+        </endButton>
+
+    </Dialog>
+</core:FragmentDefinition>

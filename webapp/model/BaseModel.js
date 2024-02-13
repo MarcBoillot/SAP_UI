@@ -227,10 +227,11 @@ sap.ui.define([
             that.busyDialog.setText("Création en cours...")
             that.busyDialog.open()
             return $.ajax({
-                method: 'post',
+                // method: 'post',
+                method: 'patch',
                 url: `${that.appContext.url.SL + that.target}(${id})`,
                 data: JSON.stringify(dataToPost),
-                headers: {'X-HTTP-Method-Override': 'PATCH'},
+                // headers: {'X-HTTP-Method-Override': 'PATCH'},
                 xhrFields: {withCredentials: true}
             })
                 .fail((e) => MessageBox.error(this.getError(e)))

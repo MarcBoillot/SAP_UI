@@ -44,7 +44,7 @@
                     <l:Column width="100px">
                         <Label text="Delete"/>
                         <l:template>
-                            <Button text="-" press="onDelete"/>
+                            <Button text="-" press="onOpenDialogDelete"/>
                         </l:template>
                     </l:Column>
                 </l:columns>
