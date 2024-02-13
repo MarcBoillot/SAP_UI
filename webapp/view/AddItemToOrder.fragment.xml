@@ -5,26 +5,25 @@
         xmlns:l="sap.ui.table"
         id="UpdateItemsFragment">
     <Dialog contentWidth="1000px"
-            id="AdditemToOrder"
             title="ADD A ITEM">
         <HBox>
-            <Label  text="Select an ItemName"/>
+            <Label text="Select an ItemName"/>
             <Select
                     id="selectedItem"
                     width="500px"
                     forceSelection="true"
-                    selectedKey="{itemsModel>/ItemName}"
+                    selectedKey="{selectedItemModel2>/ItemCode}"
                     items="{
 						path: 'itemsModel>/',
 						sorter: { path: 'ItemName' }
 					}"
             >
-                <core:Item key="{itemsModel>ItemName}" text="{itemsModel>ItemName}" />
+                <core:Item key="{itemsModel>ItemCode}" text="{itemsModel>ItemName}"/>
             </Select>
         </HBox>
 
         <Label text="Entrer une Quantité"/>
-        <Input value="{itemsModel>Quantity}" placeholder="Exemple : 45 "/>
+        <Input required="true" value="{selectedItemModel2>/Quantity}" placeholder="Exemple : 45 "/>
 
         <endButton>
             <Button text="PATCH_ORDER" press="onPostItem"/>

@@ -24,6 +24,7 @@ sap.ui.define([
         onInit: function () {
             Models = this.getOwnerComponent().ConfModel;
             Views = this.getOwnerComponent().ViewsModel;
+
             let oModel = new JSONModel({
                 ItemDescription: "",
                 PriceAfterVAT: "",
@@ -38,22 +39,18 @@ sap.ui.define([
         },
 
         onRouteMatch: async function () {
-            const order = await Models.Orders().top(5).get()
+            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").top(5).get();
+            const order2 = await Models.Orders().top(5).get()
             const item = await Models.Items().top(10).get()
             const BusinessPartners = await Models.BusinessPartners().top(10).get()
-            // let formattedOrders = []
-            // order.value.forEach((order => {
-            //     formattedOrders.push({
-            //         Key: order.DocumentLines,
-            //     })
-            // }))
+
             this._setModel(order.value, "ordersModel")
             this._setModel(item.value, "itemsModel")
-            this._setModel(BusinessPartners.value,"BusinessPartnersModel")
-            console.log("top 10 items : ",this._getModel("itemsModel").getData());
-            console.log("top 5 orders : ",this._getModel("ordersModel").getData());
-            console.log("top 10 clients : ",this._getModel("BusinessPartnersModel").getData());
-            // console.log("Orders:", formattedOrders)
+            this._setModel(BusinessPartners.value, "BusinessPartnersModel")
+
+            console.log("top 10 items : ", this._getModel("itemsModel").getData());
+            console.log("top 5 orders : ", this._getModel("ordersModel").getData());
+            console.log("top 10 clients : ", this._getModel("BusinessPartnersModel").getData());
 
             // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
@@ -67,7 +64,8 @@ sap.ui.define([
         onMasterView: function () {
             this.getOwnerComponent().getRouter().navTo('Master')
         },
-// ecoute de l'event sur le button pour savoir quel orderModel je recupere
+
+        // ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             console.log("selectedRow", selectedRow)
@@ -100,7 +98,6 @@ sap.ui.define([
                 })
             }
         },
-
         onClose: function () {
             this._byId("itemsDialog").close();
         },
@@ -110,7 +107,7 @@ sap.ui.define([
             let that = this
             if (!this._byId("helloPopover")) {
                 this._oDialogCreate = Fragment.load({
-                    name: "wwl.view.CreateItem",
+                    name: "wwl.view.AddItemToOrder",
                     controller: this
                 }).then(function (oNewItems) {
 
@@ -119,6 +116,9 @@ sap.ui.define([
                     oNewItems.getEndButton(function () {
                         oNewItems.close()
                     });
+
+
+                    oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
                     // that._setModel({
                     //     selectedRow: selectedRow,
                     // },"fragmentCreateModel");
@@ -126,6 +126,7 @@ sap.ui.define([
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
+                    oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
                     oDialog.open();
                 })
             }
@@ -179,7 +180,7 @@ sap.ui.define([
                 // CardName: sOrderName,
                 CardCode: sOrderCode,
                 DocDueDate: new Date(),
-                DocumentLines:[{ItemCode:"", Quantity:1}]
+                DocumentLines: [{ItemCode: "", Quantity: 1}]
             }).then(function () {
                 console.log("POST successful");
             }).catch(function (error) {
@@ -192,9 +193,9 @@ sap.ui.define([
 
             let oModel = this.getView().getModel();
             let selectedLine = oEvent.getSource().getBindingContext("fragmentModel").getObject();
-            console.log("selectedLine",selectedLine);
+            console.log("selectedLine", selectedLine);
 
-            if(!this._byId("UpdateItemFragment")){
+            if (!this._byId("UpdateItemFragment")) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.UpdateItem",
                     controller: this
@@ -235,53 +236,69 @@ sap.ui.define([
                 console.error("Item not found");
             }
         },
-        onPostItem: function() {
 
-            const sSelectedKey = this.getView().getModel("itemsModel").getProperty("/ItemName");
-            const oSelectedItem = this.getView().getModel("itemsModel").getProperty(`/itemsModel>${sSelectedKey}`);
+        onSelectChange: function (event) {
+            const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
+            this._getModel("selectedItemModel2").getData().ItemCode = selectedItem.ItemCode
+        },
 
-            console.log("itemsModel : ",this.getView().getModel("itemsModel").getData());
-            console.log("Selected Key:", sSelectedKey);
-            if (oSelectedItem) {
-                // Creation d'un nouvel item avec le nom et la quantity
-                const oNewItem = {
-                    ItemName: oSelectedItem.ItemName,
-                    Quantity: this.getView().getModel("itemsModel").getProperty("/Quantity")
-                };
-                const oOrderModel = this.getView().getModel("ordersModel");
-                if (oOrderModel) {
-                    const oOrder = oOrderModel.getData();
+        onPostItem: function (event) {
+            const dialog = event.getSource().getParent()
+            const selectedItem = dialog.getModel("selectedItemModel2").getData()
+            const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry
+            console.log("fragmentmodel : ", idOrder)
+            console.log("selectedItem dans le onPostItem ::", selectedItem)
 
-                    // Ensure the order has an 'Items' array
-                    if (!oOrder.Items) {
-                        oOrder.Items = [];
+
+            const dataToPatch = {
+                DocumentLines: [
+                    {
+                        Quantity: selectedItem.Quantity,
+                        ItemCode: selectedItem.ItemCode,
                     }
+                ]
+            }
 
-                    // je push le nouvel item dans le model de l'order
-                    oOrder.Items.push(oNewItem);
-                   // j'utilise la methode patch
-                    Models.Orders().patch(oOrder).then(function() {
-                        console.log("Item added to order successfully");
-                    }).catch(function(error) {
-                        console.error("Failed to add item to order", error);
+            // j'utilise la methode patch
+            Models.Orders().patch(dataToPatch, idOrder).then(function () {
+                console.log("Item added to order successfully");
+            }).catch(function (error) {
+                console.error("Failed to add item to order", error);
+            });
+           dialog.close()
+
+        },
+
+        onOpenDialogDelete: function () {
+            let that = this
+            if (!this._byId("deleteItem")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.ValidationDelete",
+                    controller: this
+                }).then(function (oNewItems) {
+
+                    that.oView.addDependent(oNewItems);
+                    oNewItems.attachAfterClose(() => oNewItems.destroy())
+                    oNewItems.getEndButton(function () {
+                        oNewItems.close()
                     });
-                    // Close the dialog or handle any other UI logic
-                    this.byId("AdditemToOrder").close();
-                } else {
-                    console.error("Orders model not found");
-                }
+                    oNewItems.open();
+                });
             } else {
-                console.error("Selected item not found");
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
             }
         },
 
+        onDeleteItem: function (oEvent) {
+            const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
+            console.log("selectedRow", selectedRow)
+            let that = this
+
+            console.log("selected row : ", selectedRow);
 
 
-
-
-
-        onDelete: function () {
-            close();
         }
 
     })
