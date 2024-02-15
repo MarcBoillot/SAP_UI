@@ -4,14 +4,15 @@
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
         id="UpdateItemsFragment">
-    <Dialog contentWidth="1000px"
+    <Dialog id="AddItemToOrder"
+            contentWidth="1000px"
             title="ADD A ITEM">
         <HBox>
             <Label text="Select an ItemName"/>
             <Select
                     id="selectedItem"
                     width="500px"
-                    forceSelection="true"
+                    forceSelection="false"
                     selectedKey="{selectedItemModel2>/ItemCode}"
                     items="{
 						path: 'itemsModel>/',
@@ -24,10 +25,9 @@
 
         <Label text="Entrer une Quantité"/>
         <Input required="true" value="{selectedItemModel2>/Quantity}" placeholder="Exemple : 45 "/>
-
-        <endButton>
-            <Button text="PATCH_ORDER" press="onPostItem"/>
-        </endButton>
-
+        <buttons>
+            <Button text="CANCEL" press="onCancel"/>
+            <Button text="PATCH_ORDER" press="onAddItemInOrder"/>
+        </buttons>
     </Dialog>
 </core:FragmentDefinition>
