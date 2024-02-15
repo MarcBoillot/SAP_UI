@@ -7,9 +7,9 @@
         id="ItemsFragment">
     <Dialog contentWidth="1000px"
             id="itemsDialog"
-            title="ITEMS : {fragmentModel>/selectedRow/DocumentLines}">
+            title="{= 'DocEntry: ' + ${fragmentModel>/DocEntry} + ' ' + 'DocNum: ' + ${fragmentModel>/DocNum}}"
+    >
         <content>
-            <Label text=""/>
             <OverflowToolbar style="Clear">
                 <Button text="Add Item" press="onOpenDialogAddItem"/>
             </OverflowToolbar>
