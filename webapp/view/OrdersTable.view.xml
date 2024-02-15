@@ -1,4 +1,4 @@
-<mvc:View controllerName="wwl.controller.Order"
+<mvc:View controllerName="wwl.controller.Dialog"
           xmlns:mvc="sap.ui.core.mvc"
           xmlns:f="sap.f"
           xmlns="sap.m"
@@ -17,7 +17,7 @@
             <l:Table
                     id="table"
                     rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
-                    visibleRowCount="{ordersModel}.length"
+                    visibleRowCount="500px"
                     selectionMode="MultiToggle"
                     enableSelectAll="false"
                     ariaLabelledBy="title">

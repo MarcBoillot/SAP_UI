@@ -7,11 +7,11 @@
         id="ItemsFragment">
     <Dialog contentWidth="1000px"
             id="itemsDialog"
-            title="ITEMS">
+            title="ITEMS : {fragmentModel>/selectedRow/DocumentLines}">
         <content>
             <Label text=""/>
             <OverflowToolbar style="Clear">
-                <Button text="Add Item" press="createItemDialog"/>
+                <Button text="Add Item" press="onOpenDialogAddItem"/>
             </OverflowToolbar>
             <l:Table
                     rows="{path:'fragmentModel>/selectedRow/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
@@ -51,7 +51,7 @@
             </l:Table>
         </content>
         <endButton>
-            <Button text="Close" press="onClose"/>
+            <Button text="Close"/>
         </endButton>
     </Dialog>
 </core:FragmentDefinition>
