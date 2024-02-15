@@ -49,6 +49,12 @@ sap.ui.define([
             return this
         },
 
+        orderby: function (orderby) {
+            this.query += this._prepareToAddParam();
+            this.query += `orderby=${orderby}`;
+            return this
+        },
+
         top: function (top) {
             this.query += this._prepareToAddParam();
             this.query += `top=${top}`;

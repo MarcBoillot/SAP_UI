@@ -61,7 +61,7 @@ sap.ui.define([
         },
 
         getOrders: async function () {
-            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").top(15).get();
+            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum").top(15).get();
             this._setModel(order.value, "ordersModel")
         },
 
@@ -77,6 +77,10 @@ sap.ui.define([
         // ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
+            const docNum = selectedRow.DocNum
+            const docEntry = selectedRow.DocEntry
+            console.log("docNum : ",docNum)
+            console.log("docEntry : ", docEntry)
             console.log("selectedRow", selectedRow)
             let that = this
             // ensuite je charge le fragment pour afficher la vue des elements que contient l'order selected
@@ -94,6 +98,8 @@ sap.ui.define([
                     // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
                     that._setModel({
                         selectedRow: selectedRow,
+                        DocNum: docNum,
+                        DocEntry: docEntry
                     }, "fragmentModel");
 
                     oDialogItem.open();
@@ -115,19 +121,19 @@ sap.ui.define([
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.AddItemToOrder",
                     controller: this
-                }).then(function (oNewItems) {
+                }).then(function (oDialog) {
 
-                    that.oView.addDependent(oNewItems);
-                    oNewItems.attachAfterClose(() => oNewItems.destroy())
-                    oNewItems.getEndButton(function () {
-                        oNewItems.close()
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(function () {
+                        oDialog.close()
                     });
 
-                    oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
+                    oDialog.setModel(new JSONModel({}), "selectedItemModel2")
                     // that._setModel({
                     //     selectedRow: selectedRow,
                     // },"fragmentCreateModel");
-                    oNewItems.open();
+                    oDialog.open();
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
@@ -137,9 +143,10 @@ sap.ui.define([
             }
         },
 
-        onAddItemInOrder: function (event) {
+        onAddItemInOrder: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
+            console.log(dialog)
             const selectedItem = dialog.getModel("selectedItemModel2").getData();
             const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry;
 
@@ -149,7 +156,7 @@ sap.ui.define([
                 const lineNumArray = documentLines.map(docLine => docLine.LineNum);
                 const highestLineNum = Math.max(...lineNumArray);
 
-                console.log("fragmentmodel : ", idOrder);
+                console.log("fragmentModel : ", idOrder);
                 console.log("selectedItem dans le onPostItem ::", selectedItem);
                 console.log("LineNum Array:", lineNumArray);
                 console.log("Highest LineNum:", highestLineNum);
@@ -170,7 +177,7 @@ sap.ui.define([
                     console.error("Failed to add item to order", error);
                 });
 
-                that.getOrders();
+                await that.getOrders();
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
