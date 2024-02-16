@@ -26,7 +26,7 @@
                         <Button text="Master" press="onMasterView"/>
                         <Button text="See details of selection" />
                         <ToolbarSpacer/>
-                        <Button text="create" press="createOrderDialog"/>
+                        <Button text="create" press="onOpenDialogAddOrder"/>
                     </OverflowToolbar>
                 </l:extension>
                 <l:columns>

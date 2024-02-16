@@ -11,9 +11,10 @@
         <Text text="Etes vous sure de vouloir supprimer cette élément de la commande ?"/>
 
 
-        <endButton>
+        <buttons>
             <Button text="YES" press="onDeleteItem"/>
-        </endButton>
+            <Button text="NO" press="onCancelDeleteItem"/>
+        </buttons>
 
     </Dialog>
 </core:FragmentDefinition>

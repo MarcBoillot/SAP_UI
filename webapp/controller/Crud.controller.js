@@ -109,12 +109,7 @@ sap.ui.define([
 
 
 
-        onDeleteItem: function (oEvent) {
-            let that = this
-            const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
-            console.log("selectedRow", selectedRow)
-            console.log("selected row : ", selectedRow);
-        },
+
 
     });
 });

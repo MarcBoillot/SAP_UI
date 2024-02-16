@@ -244,6 +244,25 @@ sap.ui.define([
                 .always(() => that.busyDialog.close())
         },
 
+        delete: async function (dataToPost, id) {
+            let that = this
+
+            await that.handleAuth()
+
+            that.busyDialog.setText("Suppression en cours...")
+            that.busyDialog.open()
+            return $.ajax({
+                // method: 'patch',
+                method: 'delete',
+                url: `${that.appContext.url.SL + that.target}(${id})`,
+                data: JSON.stringify(dataToPost),
+                // headers: {'X-HTTP-Method-Override': 'PATCH'},
+                xhrFields: {withCredentials: true}
+            })
+                .fail((e) => MessageBox.error(this.getError(e)))
+                .always(() => that.busyDialog.close())
+        },
+
         close: async function (id) {
             let that = this
 

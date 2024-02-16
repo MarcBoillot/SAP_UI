@@ -69,6 +69,9 @@ sap.ui.define([
             sap.ui.getCore().byId("AddItemToOrder").close()
         },
 
+        onCancelDeleteItem: function () {
+            sap.ui.getCore().byId("deleteItem").close()
+        },
 
         onMasterView: function () {
             this.getOwnerComponent().getRouter().navTo('Master')
@@ -115,7 +118,6 @@ sap.ui.define([
         },
 
         onOpenDialogAddItem: function (oEvent) {
-            // const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             let that = this
             if (!this._byId("AddItemToOrder")) {
                 this._oDialogCreate = Fragment.load({
@@ -149,7 +151,6 @@ sap.ui.define([
             console.log(dialog)
             const selectedItem = dialog.getModel("selectedItemModel2").getData();
             const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry;
-
             const documentLines = this._getModel("fragmentModel").getData().selectedRow.DocumentLines;
 
             if (Array.isArray(documentLines)) {
@@ -170,7 +171,7 @@ sap.ui.define([
                         }
                     ]
                 };
-                // Use the patch method with data and id
+
                 Models.Orders().patch(dataToPatch, idOrder).then(function () {
                     console.log("Item added to order successfully");
                 }).catch(function (error) {
@@ -189,20 +190,20 @@ sap.ui.define([
             this._byId("AddItemToOrder").close();
         },
 
-        onOpenDialogCreateOrder: function () {
+        onOpenDialogAddOrder: function () {
             let that = this
             if (!this._byId("createOrderDialog")) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.CreateOrder",
                     controller: this
-                }).then(function (oNewItems) {
+                }).then(function (oDialog) {
 
-                    that.oView.addDependent(oNewItems);
-                    oNewItems.attachAfterClose(() => oNewItems.destroy())
-                    oNewItems.getEndButton(function () {
-                        oNewItems.close()
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(function () {
+                        oDialog.close()
                     });
-                    oNewItems.open();
+                    oDialog.open();
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
@@ -211,7 +212,7 @@ sap.ui.define([
             }
         },
 
-        createOrderClose: function () {
+        onCloseCreateOrder: function () {
             this._byId("createOrderDialog").close();
         },
 
@@ -241,26 +242,40 @@ sap.ui.define([
             });
         },
 
-        onOpenDialogDelete: function () {
+        onOpenDialogDelete: function (oEvent) {
             let that = this
             if (!this._byId("deleteItem")) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.DeleteValidation",
                     controller: this
-                }).then(function (oNewItems) {
+                }).then(function (oDialog) {
 
-                    that.oView.addDependent(oNewItems);
-                    oNewItems.attachAfterClose(() => oNewItems.destroy())
-                    oNewItems.getEndButton(function () {
-                        oNewItems.close()
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(function () {
+                        oDialog.close()
                     });
-                    oNewItems.open();
+                    const selectedItem = oEvent.getSource().getBindingContext("fragmentModel").getObject();
+                    console.log("selected item : ", selectedItem)
+                    oDialog.open();
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
                     oDialog.open();
                 })
             }
+        },
+
+        onDeleteItem: function (selectedItem) {
+            let that = this;
+            const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry;
+            console.log("id : ", idOrder)
+            Models.Orders().delete(selectedItem, idOrder).then(()=>{
+                console.log("item deleted with success !!!")
+            }).catch((error)=>{
+                console.log("une erreur est survenue : ", error)
+            });
+            console.log("selected Item : ", selectedItem)
         },
 
 

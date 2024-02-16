@@ -5,7 +5,7 @@
         xmlns:x="sap.ui.layout"
         xmlns:w="sap.ui.webc.main"
         id="ItemsFragment">
-    <Dialog contentWidth="1000px"
+    <Dialog contentWidth="1200px"
             id="itemsDialog"
             title="{= 'DocEntry: ' + ${fragmentModel>/DocEntry} + ' ' + 'DocNum: ' + ${fragmentModel>/DocNum}}"
     >
