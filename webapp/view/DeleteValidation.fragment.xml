@@ -4,12 +4,15 @@
         xmlns:core="sap.ui.core"
         xmlns:l="sap.ui.table"
         id="DeleteItemFragment">
-    <Dialog contentWidth="500px"
+    <Dialog contentWidth="1000px"
             id="deleteItem"
-            title="CONFIRMATION TO DELETE ITEM">
+            title="{= ${fragmentModel1>/ItemDescription} + ' ' + '('+'Ligne : ' + ${fragmentModel1>/LineNum}+')'}  ">
 
-        <Text text="Etes vous sure de vouloir supprimer cette élément de la commande ?"/>
 
+        <Text text="Etes vous sure de vouloir supprimer cet élément de la commande ?"/>
+
+        <Label text=" Entrer une Quantité a supprimer"/>
+        <Input required="true" value="{=${fragmentModel1>/Quantity}}" />
 
         <buttons>
             <Button text="YES" press="onDeleteItem"/>

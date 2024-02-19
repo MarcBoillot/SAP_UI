@@ -13,38 +13,38 @@
 <!--        <Label text="Entrer un NOM"/>-->
 <!--        <Input value="{/CardName}" placeholder="Exemple : RUEFF JDD "/>-->
 
-        <Label text="Entrer un CODE POSTAL"/>
-        <Input value="{/CardCode}" placeholder="Exemple : 07500 "/>
+<!--        <Label text="Entrer un CODE POSTAL"/>-->
+<!--        <Input value="{/CardCode}" placeholder="Exemple : 07500 "/>-->
 <VBox>
     <HBox>
-        <Label  text="Select a DocEntry"/>
+        <Label text="Select a business Partner"/>
         <Select
-
+                id="selectedBusinessPartner"
                 width="500px"
                 forceSelection="false"
-                selectedKey="{/orders}"
+                selectedKey="{selectedItemModel2>/CardName}"
                 items="{
-						path: '/ordersModel',
-						sorter: { path: 'Name' }
-					}">
-
-            <core:Item key="{ordersModel>DocEntry}" text="{Name}" />
+						path: 'BusinessPartnersModel>/',
+						sorter: { path: 'CardName' }
+					}"
+        >
+            <core:Item key="{BusinessPartnersModel>ItemCode}" text="{BusinessPartnersModel>CardName}"/>
         </Select>
     </HBox>
-    <HBox>
-        <Label  text="Select an Item"/>
-        <Select
-                width="500px"
-                forceSelection="false"
-                selectedKey="{/SelectedProduct}"
-                items="{
-						path: '/ordersModel',
-						sorter: { path: 'Name' }
-					}">
+<!--    <HBox>-->
+<!--        <Label  text="Select a Business Partner"/>-->
+<!--        <Select-->
+<!--                width="500px"-->
+<!--                forceSelection="false"-->
+<!--                selectedKey="{/SelectedProduct}"-->
+<!--                items="{-->
+<!--						path: '/ordersModel',-->
+<!--						sorter: { path: 'Name' }-->
+<!--					}">-->
 
-            <core:Item key="{ordersModel>DocName}" text="{Name}" />
-        </Select>
-    </HBox>
+<!--            <core:Item key="{ordersModel>DocName}" text="{Name}" />-->
+<!--        </Select>-->
+<!--    </HBox>-->
 </VBox>
 
 
@@ -58,7 +58,7 @@
 
 
         <buttons>
-            <Button text="Post" press="onPost"/>
+            <Button text="Post" press="onCreateNewOrder"/>
             <Button text="Close" press="onCloseCreateOrder"/>
         </buttons>
 

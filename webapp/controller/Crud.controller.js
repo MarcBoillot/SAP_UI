@@ -59,6 +59,11 @@ sap.ui.define([
             this._getModel("selectedItemModel2").getData().ItemCode = selectedItem.ItemCode
         },
 
+        onSelectChangeBusinessPartner: function (event) {
+            const selectedBusinessPartner = event.getSource().getSelectedItem().getBindingContext("BusinessPartnersModel").getObject()
+            this._getModel("selectedItemModel2").getData().CardName = selectedBusinessPartner.CardName
+        },
+
         onPatchOrder: function (oEvent) {
             let that = this
             let oModel = this.getView().getModel();
@@ -69,14 +74,14 @@ sap.ui.define([
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.UpdateItem",
                     controller: this
-                }).then(function (oNewItems) {
+                }).then(function (oDialog) {
 
-                    that.oView.addDependent(oNewItems);
-                    oNewItems.attachAfterClose(() => oNewItems.destroy())
-                    oNewItems.getEndButton(function () {
-                        oNewItems.close()
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(function () {
+                        oDialog.close()
                     });
-                    oNewItems.open();
+                    oDialog.open();
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {

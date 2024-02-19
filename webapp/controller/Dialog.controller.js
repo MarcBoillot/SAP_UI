@@ -40,11 +40,13 @@ sap.ui.define([
 
         onRouteMatch: async function () {
 
-            const item = await Models.Items().top(10).get()
             const BusinessPartners = await Models.BusinessPartners().top(10).get()
+
             await this.getOrders()
 
-            this._setModel(item.value, "itemsModel")
+            const item = await Models.Items().filter("AssetStatus ne 'Inactive'").top(10).get()
+            this._setModel(item.value,"itemsModel")
+
             this._setModel(BusinessPartners.value, "BusinessPartnersModel")
 
             console.log("top 10 items : ", this._getModel("itemsModel").getData());
@@ -65,8 +67,13 @@ sap.ui.define([
             this._setModel(order.value, "ordersModel")
         },
 
-        onCancel: function () {
+
+        onCancel: async function () {
+            //mise a jour du model qui se fait seulement dans l'affichage orderTable
+            let that = this
+            await that.getOrders();
             sap.ui.getCore().byId("AddItemToOrder").close()
+
         },
 
         onCancelDeleteItem: function () {
@@ -82,7 +89,7 @@ sap.ui.define([
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const docNum = selectedRow.DocNum
             const docEntry = selectedRow.DocEntry
-            console.log("docNum : ",docNum)
+            console.log("docNum : ", docNum)
             console.log("docEntry : ", docEntry)
             console.log("selectedRow", selectedRow)
             let that = this
@@ -154,6 +161,7 @@ sap.ui.define([
             const documentLines = this._getModel("fragmentModel").getData().selectedRow.DocumentLines;
 
             if (Array.isArray(documentLines)) {
+                //pour ajouter et pas ecraser la ligne deja existante
                 const lineNumArray = documentLines.map(docLine => docLine.LineNum);
                 const highestLineNum = Math.max(...lineNumArray);
 
@@ -161,7 +169,7 @@ sap.ui.define([
                 console.log("selectedItem dans le onPostItem ::", selectedItem);
                 console.log("LineNum Array:", lineNumArray);
                 console.log("Highest LineNum:", highestLineNum);
-
+                // j'ajoute dans le model a la ligne suivante l'item selected et sa quantity
                 const dataToPatch = {
                     DocumentLines: [
                         {
@@ -171,13 +179,13 @@ sap.ui.define([
                         }
                     ]
                 };
-
+                //je patch les nouvelles données
                 Models.Orders().patch(dataToPatch, idOrder).then(function () {
                     console.log("Item added to order successfully");
                 }).catch(function (error) {
                     console.error("Failed to add item to order", error);
                 });
-
+                //avant la fermeture du dialog je met a jour le model
                 await that.getOrders();
                 dialog.close();
             } else {
@@ -216,16 +224,16 @@ sap.ui.define([
             this._byId("createOrderDialog").close();
         },
 
-        onPost: function () {
+        onCreateNewOrder: function () {
             // Obtenez le modèle de la vue du fragment
             let oModel = this.getView().getModel();
 
             // Obtenez les valeurs des champs d'entrée
             // let sIdOrder = oModel.getProperty("/DocEntry");
-            let sOrderName = oModel.getProperty("/CardName");
-            let sOrderCode = oModel.getProperty("/CardCode");
+            // let sOrderName = oModel.getProperty("/CardName");
+            // let sOrderCode = oModel.getProperty("/CardCode");
             // let sDate = oModel.getProperty("/DocDate");
-            let sDate = oModel.getProperty("/DocDueDate");
+            // let sDate = oModel.getProperty("/DocDueDate");
 
             console.log("sDate ::", new Date(sDate))
             //effectuer la requête POST
@@ -244,6 +252,22 @@ sap.ui.define([
 
         onOpenDialogDelete: function (oEvent) {
             let that = this
+
+            const selectedItem = oEvent.getSource().getBindingContext("fragmentModel").getObject();
+            console.log("selectedItem", selectedItem)
+
+            const ItemCode = selectedItem.ItemCode;
+            console.log("Itemcode", ItemCode)
+
+            const ItemDescription = selectedItem.ItemDescription;
+            console.log("ItemDescription", ItemDescription)
+
+            const LineNum = selectedItem.LineNum
+            console.log(LineNum)
+
+            const Quantity = selectedItem.Quantity
+            console.log(Quantity)
+
             if (!this._byId("deleteItem")) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.DeleteValidation",
@@ -253,10 +277,18 @@ sap.ui.define([
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
                     oDialog.getEndButton(function () {
+
                         oDialog.close()
                     });
-                    const selectedItem = oEvent.getSource().getBindingContext("fragmentModel").getObject();
-                    console.log("selected item : ", selectedItem)
+
+                    that._setModel({
+                        selectedItem: selectedItem,
+                        ItemCode: selectedItem.ItemCode,
+                        ItemDescription: selectedItem.ItemDescription,
+                        LineNum: selectedItem.LineNum + 1,
+                        Quantity: selectedItem.Quantity
+                    }, "fragmentModel1");
+
                     oDialog.open();
                 });
             } else {
@@ -266,16 +298,42 @@ sap.ui.define([
             }
         },
 
-        onDeleteItem: function (selectedItem) {
+        onDeleteItem: async function (event) {
             let that = this;
-            const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry;
+            const dialog = event.getSource().getParent();
+
+            const orderModelData = this._getModel("fragmentModel1").getData();
+            console.log("orderModelData", orderModelData)
+
+            const selectedItem = orderModelData.selectedItem;
+            console.log("selecteditem", selectedItem)
+
+            const idOrder = orderModelData.selectedItem.DocEntry;
             console.log("id : ", idOrder)
-            Models.Orders().delete(selectedItem, idOrder).then(()=>{
-                console.log("item deleted with success !!!")
-            }).catch((error)=>{
-                console.log("une erreur est survenue : ", error)
+
+            const allItemsInOrder = this._getModel("fragmentModel").getData();
+            console.log("ordersItems selected : ", allItemsInOrder)
+
+            const items = allItemsInOrder.selectedRow.DocumentLines;
+            console.log("items : ", items)
+            // filter methode pour tableau
+            const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
+            console.log("updatedItems", updatedItems)
+
+            // selectedItem.DocumentLines = updatedItems;
+            // this._getModel("fragmentModel").setData(orderModelData);
+// pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
+            // const 'B1S-ReplaceCollectionsOnPatch'=true ,
+            Models.Orders().patch({
+                DocumentLines: updatedItems
+            }, idOrder).then(() => {
+                console.log("Item deleted successfully!");
+            }).catch((error) => {
+                console.error("Error deleting item:", error);
             });
-            console.log("selected Item : ", selectedItem)
+            await that.getItems();
+            dialog.close()
+            console.log("selected Item : ", selectedItem);
         },
 
 

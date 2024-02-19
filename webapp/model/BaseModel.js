@@ -237,7 +237,7 @@ sap.ui.define([
                 method: 'patch',
                 url: `${that.appContext.url.SL + that.target}(${id})`,
                 data: JSON.stringify(dataToPost),
-                // headers: {'X-HTTP-Method-Override': 'PATCH'},
+                headers: {'B1S-ReplaceCollectionsOnPatch':false},
                 xhrFields: {withCredentials: true}
             })
                 .fail((e) => MessageBox.error(this.getError(e)))
