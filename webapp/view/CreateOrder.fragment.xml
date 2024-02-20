@@ -59,6 +59,5 @@
             <Button text="Post" press="onCreateNewOrder"/>
             <Button text="Close" press="onCloseCreateOrder"/>
         </buttons>
-
     </Dialog>
 </core:FragmentDefinition>

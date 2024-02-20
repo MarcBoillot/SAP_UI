@@ -38,6 +38,7 @@ sap.ui.define([
 
         },
 
+
 // --------------------------------------------------------------------ROUTEMATCH-------------------------------------------------------------------------------------- //
 
         onRouteMatch: async function () {
@@ -60,6 +61,7 @@ sap.ui.define([
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
 
+
 // ---------------------------------------------------------------------------MODIFICATION IN CHOICE------------------------------------------------------------------------------- //
 
         onSelectChange: function (event) {
@@ -74,10 +76,12 @@ sap.ui.define([
 
 // ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
 
+
         getOrders: async function () {
             const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum").top(15).get();
             this._setModel(order.value, "ordersModel")
         },
+
 
         getItems: async function () {
             const item = await Models.Items().filter("Frozen ne 'tYES'").top(10).get()
@@ -109,7 +113,9 @@ sap.ui.define([
             this.getOwnerComponent().getRouter().navTo('Master')
         },
 
+
 // ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //
+
 
         // ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
@@ -153,6 +159,7 @@ sap.ui.define([
             }
         },
 
+
 // -------------------------------------------------------------------------ADD AN ITEM IN ORDER--------------------------------------------------------------------------------- //
 
         onOpenDialogAddItem: function (oEvent) {
@@ -178,6 +185,7 @@ sap.ui.define([
             } else {
                 this._oDialogCreate.then(function (oDialog) {
                     // oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
+
                     oDialog.open();
                 })
             }
@@ -200,7 +208,9 @@ sap.ui.define([
                 console.log("selectedItem dans le onPostItem ::", selectedItem);
                 console.log("LineNum Array:", lineNumArray);
                 console.log("Highest LineNum:", highestLineNum);
+
                 // j'ajoute dans le model a la ligne suivante l'item selected et sa quantity
+
                 const dataToPatch = {
                     DocumentLines: [
                         {
@@ -210,19 +220,24 @@ sap.ui.define([
                         }
                     ]
                 };
+
                 //je patch les nouvelles données
+
                 Models.Orders().patch(dataToPatch, idOrder).then(function () {
                     console.log("Item added to order successfully");
                 }).catch(function (error) {
                     console.error("Failed to add item to order", error);
                 });
+
                 //avant la fermeture du dialog je met a jour le model
+
                 await that.getOrders();
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
             }
         },
+
 
 // ----------------------------------------------------------------------------ADD AN ORDER------------------------------------------------------------------------------ //
 
@@ -232,6 +247,7 @@ sap.ui.define([
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.CreateOrder",
                     controller: this
+
                 }).then(function (oDialog) {
 
                     that.oView.addDependent(oDialog);
@@ -242,6 +258,7 @@ sap.ui.define([
                     oDialog.setModel(new JSONModel({}), "selectedItemModel2")
                     oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
                     oDialog.open();
+
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
@@ -249,6 +266,7 @@ sap.ui.define([
                 })
             }
         },
+
 
         onCreateNewOrder: function (event) {
             let that = this
@@ -288,6 +306,7 @@ sap.ui.define([
             });
         },
 
+
 // ---------------------------------------------------------------------------DELETE AN ITEM IN ORDER------------------------------------------------------------------------------- //
 
         onOpenDialogDelete: function (oEvent) {
@@ -309,6 +328,7 @@ sap.ui.define([
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.DeleteValidation",
                     controller: this
+
                 }).then(function (oDialog) {
 
                     that.oView.addDependent(oDialog);
@@ -334,6 +354,7 @@ sap.ui.define([
                 })
             }
         },
+
 
         onDeleteItem: async function (event) {
             let that = this;

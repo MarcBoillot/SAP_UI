@@ -20,7 +20,6 @@ sap.ui.define([
 
     return BaseController.extend("wwl.controller.Crud", {
         Formatter: Formatter,
-
         onInit: function () {
             Models = this.getOwnerComponent().ConfModel;
             Views = this.getOwnerComponent().ViewsModel;
@@ -52,7 +51,6 @@ sap.ui.define([
             console.log("top 10 clients : ", this._getModel("BusinessPartnersModel").getData());
 
         },
-
 
 
         onPatchOrder: function (oEvent) {
@@ -102,10 +100,5 @@ sap.ui.define([
                 console.error("Item not found");
             }
         },
-
-
-
-
-
     });
 });
