@@ -244,6 +244,25 @@ sap.ui.define([
                 .always(() => that.busyDialog.close())
         },
 
+        paatch: async function (dataToPost, id) {
+            let that = this
+
+            await that.handleAuth()
+
+            that.busyDialog.setText("Création en cours...")
+            that.busyDialog.open()
+            return $.ajax({
+                // method: 'post',
+                method: 'patch',
+                url: `${that.appContext.url.SL + that.target}(${id})`,
+                data: JSON.stringify(dataToPost),
+                headers: {'B1S-ReplaceCollectionsOnPatch':true},
+                xhrFields: {withCredentials: true}
+            })
+                .fail((e) => MessageBox.error(this.getError(e)))
+                .always(() => that.busyDialog.close())
+        },
+
         delete: async function (dataToPost, id) {
             let that = this
 

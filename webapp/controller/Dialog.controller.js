@@ -38,15 +38,13 @@ sap.ui.define([
 
         },
 
+// --------------------------------------------------------------------ROUTEMATCH-------------------------------------------------------------------------------------- //
+
         onRouteMatch: async function () {
 
             const BusinessPartners = await Models.BusinessPartners().top(10).get()
-
             await this.getOrders()
-
-            const item = await Models.Items().filter("AssetStatus ne 'Inactive'").top(10).get()
-            this._setModel(item.value,"itemsModel")
-
+            await this.getItems()
             this._setModel(BusinessPartners.value, "BusinessPartnersModel")
 
             console.log("top 10 items : ", this._getModel("itemsModel").getData());
@@ -62,27 +60,56 @@ sap.ui.define([
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
 
+// ---------------------------------------------------------------------------MODIFICATION IN CHOICE------------------------------------------------------------------------------- //
+
+        onSelectChange: function (event) {
+            const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
+            this._getModel("selectedItemModel2").getData().ItemCode = selectedItem.ItemCode
+        },
+
+        onSelectChangeBusinessPartner: function (event) {
+            const selectedBusinessPartner = event.getSource().getSelectedBusinessPartner().getBindingContext("BusinessPartnersModel").getObject()
+            this._getModel("selectedBusinessPartnerModel").getData().CardName = selectedBusinessPartner.CardName
+        },
+
+// ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
+
         getOrders: async function () {
             const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum").top(15).get();
             this._setModel(order.value, "ordersModel")
         },
 
+        getItems: async function () {
+            const item = await Models.Items().filter("Frozen ne 'tYES'").top(10).get()
+            this._setModel(item.value, "itemsModel")
+        },
+
+// ----------------------------------------------------------------------------CLOSE DIALOG------------------------------------------------------------------------------ //
 
         onCancel: async function () {
             //mise a jour du model qui se fait seulement dans l'affichage orderTable
             let that = this
             await that.getOrders();
             sap.ui.getCore().byId("AddItemToOrder").close()
-
         },
 
         onCancelDeleteItem: function () {
             sap.ui.getCore().byId("deleteItem").close()
         },
 
+        handleClose: function () {
+            this._byId("AddItemToOrder").close();
+        },
+
+        onCloseCreateOrder: function () {
+            this._byId("createOrderDialog").close();
+        },
+
         onMasterView: function () {
             this.getOwnerComponent().getRouter().navTo('Master')
         },
+
+// ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //
 
         // ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
@@ -101,7 +128,9 @@ sap.ui.define([
                 }).then(function (oDialogItem) {
                     that.oView.addDependent(oDialogItem);
                     oDialogItem.attachAfterClose(() => oDialogItem.destroy())
-                    oDialogItem.getEndButton().attachPress(() => {
+                    oDialogItem.getEndButton().attachPress(async () => {
+                        await that.getOrders()
+                        await that.getItems()
                         oDialogItem.close()
                     })
 
@@ -123,6 +152,8 @@ sap.ui.define([
                 })
             }
         },
+
+// -------------------------------------------------------------------------ADD AN ITEM IN ORDER--------------------------------------------------------------------------------- //
 
         onOpenDialogAddItem: function (oEvent) {
             let that = this
@@ -146,7 +177,7 @@ sap.ui.define([
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
-                    oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
+                    // oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
                     oDialog.open();
                 })
             }
@@ -193,10 +224,7 @@ sap.ui.define([
             }
         },
 
-
-        handleClose: function () {
-            this._byId("AddItemToOrder").close();
-        },
+// ----------------------------------------------------------------------------ADD AN ORDER------------------------------------------------------------------------------ //
 
         onOpenDialogAddOrder: function () {
             let that = this
@@ -211,6 +239,8 @@ sap.ui.define([
                     oDialog.getEndButton(function () {
                         oDialog.close()
                     });
+                    oDialog.setModel(new JSONModel({}), "selectedItemModel2")
+                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
                     oDialog.open();
                 });
             } else {
@@ -220,29 +250,37 @@ sap.ui.define([
             }
         },
 
-        onCloseCreateOrder: function () {
-            this._byId("createOrderDialog").close();
-        },
+        onCreateNewOrder: function (event) {
+            let that = this
+            const dialog = event.getSource().getParent();
+            const selectedItem = dialog.getModel("selectedItemModel2").getData();
+            const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
 
-        onCreateNewOrder: function () {
             // Obtenez le modèle de la vue du fragment
-            let oModel = this.getView().getModel();
-
+            let oModel = that.getView().getModel();
             // Obtenez les valeurs des champs d'entrée
-            // let sIdOrder = oModel.getProperty("/DocEntry");
-            // let sOrderName = oModel.getProperty("/CardName");
-            // let sOrderCode = oModel.getProperty("/CardCode");
-            // let sDate = oModel.getProperty("/DocDate");
-            // let sDate = oModel.getProperty("/DocDueDate");
-
+            let sOrderName = oModel.getProperty("/CardName");
+            let sOrderCode = oModel.getProperty("/CardCode");
+            let sDate = oModel.getProperty("/DocDueDate");
+            console.log("dialog : ",dialog)
+            console.log("selectedItem : ",selectedItem)
+            console.log("selectedBusinessPartner : ", selectedBusinessPartner)
             console.log("sDate ::", new Date(sDate))
+            console.log("oModel : ",oModel)
+            console.log("sOrderName : ", sOrderName)
+            console.log("sOrderCode : ",sOrderCode)
+
             //effectuer la requête POST
             Models.Orders().post({
-                // DocEntry: sIdOrder,
-                // CardName: sOrderName,
+                CardName: sOrderName,
                 CardCode: sOrderCode,
                 DocDueDate: new Date(),
-                DocumentLines: [{ItemCode: "", Quantity: 1}]
+                DocumentLines: [
+                    {
+                        ItemCode: ItemCode,
+                        Quantity: 1
+                    }
+                ]
             }).then(function () {
                 console.log("POST successful");
             }).catch(function (error) {
@@ -250,23 +288,22 @@ sap.ui.define([
             });
         },
 
+// ---------------------------------------------------------------------------DELETE AN ITEM IN ORDER------------------------------------------------------------------------------- //
+
         onOpenDialogDelete: function (oEvent) {
             let that = this
 
             const selectedItem = oEvent.getSource().getBindingContext("fragmentModel").getObject();
-            console.log("selectedItem", selectedItem)
-
             const ItemCode = selectedItem.ItemCode;
-            console.log("Itemcode", ItemCode)
-
             const ItemDescription = selectedItem.ItemDescription;
-            console.log("ItemDescription", ItemDescription)
-
             const LineNum = selectedItem.LineNum
-            console.log(LineNum)
-
             const Quantity = selectedItem.Quantity
-            console.log(Quantity)
+
+            console.log("selectedItem : ", selectedItem)
+            console.log("Itemcode : ", ItemCode)
+            console.log("ItemDescription : ", ItemDescription)
+            console.log("LineNum : ", LineNum)
+            console.log("Quantity : ", Quantity)
 
             if (!this._byId("deleteItem")) {
                 this._oDialogCreate = Fragment.load({
@@ -276,8 +313,8 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(function () {
-
+                    oDialog.getEndButton(async function () {
+                        await that.getOrders()
                         oDialog.close()
                     });
 
@@ -301,41 +338,35 @@ sap.ui.define([
         onDeleteItem: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-
             const orderModelData = this._getModel("fragmentModel1").getData();
-            console.log("orderModelData", orderModelData)
-
             const selectedItem = orderModelData.selectedItem;
-            console.log("selecteditem", selectedItem)
-
             const idOrder = orderModelData.selectedItem.DocEntry;
-            console.log("id : ", idOrder)
-
             const allItemsInOrder = this._getModel("fragmentModel").getData();
-            console.log("ordersItems selected : ", allItemsInOrder)
-
             const items = allItemsInOrder.selectedRow.DocumentLines;
-            console.log("items : ", items)
             // filter methode pour tableau
             const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
+
+            console.log("orderModelData", orderModelData)
+            console.log("selecteditem", selectedItem)
+            console.log("id : ", idOrder)
+            console.log("ordersItems selected : ", allItemsInOrder)
+            console.log("items : ", items)
             console.log("updatedItems", updatedItems)
 
-            // selectedItem.DocumentLines = updatedItems;
-            // this._getModel("fragmentModel").setData(orderModelData);
-// pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
-            // const 'B1S-ReplaceCollectionsOnPatch'=true ,
-            Models.Orders().patch({
+            // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
+            Models.Orders().paatch({
                 DocumentLines: updatedItems
             }, idOrder).then(() => {
                 console.log("Item deleted successfully!");
             }).catch((error) => {
                 console.error("Error deleting item:", error);
             });
-            await that.getItems();
+            await that.getOrders();
             dialog.close()
             console.log("selected Item : ", selectedItem);
-        },
 
+        },
+        // ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     })
 });

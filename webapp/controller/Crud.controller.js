@@ -40,7 +40,7 @@ sap.ui.define([
 
         onRouteMatch: async function () {
             const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").top(5).get();
-            const item = await Models.Items().top(10).get()
+            const item = await Models.Items().filter("Frozen ne 'tYES'").top(10).get()
             const BusinessPartners = await Models.BusinessPartners().top(10).get()
 
             this._setModel(order.value, "ordersModel")
@@ -54,15 +54,6 @@ sap.ui.define([
         },
 
 
-        onSelectChange: function (event) {
-            const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
-            this._getModel("selectedItemModel2").getData().ItemCode = selectedItem.ItemCode
-        },
-
-        onSelectChangeBusinessPartner: function (event) {
-            const selectedBusinessPartner = event.getSource().getSelectedItem().getBindingContext("BusinessPartnersModel").getObject()
-            this._getModel("selectedItemModel2").getData().CardName = selectedBusinessPartner.CardName
-        },
 
         onPatchOrder: function (oEvent) {
             let that = this
