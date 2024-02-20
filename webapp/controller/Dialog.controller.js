@@ -49,7 +49,7 @@ sap.ui.define([
             this._setModel(BusinessPartners.value, "BusinessPartnersModel")
 
             console.log("top 10 items : ", this._getModel("itemsModel").getData());
-            console.log("top 5 orders : ", this._getModel("ordersModel").getData());
+            console.log("top 15 orders : ", this._getModel("ordersModel").getData());
             console.log("top 10 clients : ", this._getModel("BusinessPartnersModel").getData());
 
             // /** Exemple d'une vue SQL **/
@@ -72,13 +72,15 @@ sap.ui.define([
         onSelectChangeBusinessPartner: function (event) {
             const selectedBusinessPartner = event.getSource().getSelectedBusinessPartner().getBindingContext("BusinessPartnersModel").getObject()
             this._getModel("selectedBusinessPartnerModel").getData().CardName = selectedBusinessPartner.CardName
+            this._getModel("selectedBusinessPartnerModel").getData().CardCode = selectedBusinessPartner.CardCode
+            this._getModel("selectedBusinessPartnerModel").getData().CardType = selectedBusinessPartner.CardType
         },
 
 // ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
 
 
         getOrders: async function () {
-            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum").top(15).get();
+            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(15).get();
             this._setModel(order.value, "ordersModel")
         },
 
@@ -258,7 +260,6 @@ sap.ui.define([
                     oDialog.setModel(new JSONModel({}), "selectedItemModel2")
                     oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
                     oDialog.open();
-
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
@@ -267,35 +268,26 @@ sap.ui.define([
             }
         },
 
-
         onCreateNewOrder: function (event) {
             let that = this
             const dialog = event.getSource().getParent();
             const selectedItem = dialog.getModel("selectedItemModel2").getData();
             const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
-
-            // Obtenez le modèle de la vue du fragment
             let oModel = that.getView().getModel();
-            // Obtenez les valeurs des champs d'entrée
-            let sOrderName = oModel.getProperty("/CardName");
-            let sOrderCode = oModel.getProperty("/CardCode");
-            let sDate = oModel.getProperty("/DocDueDate");
             console.log("dialog : ",dialog)
             console.log("selectedItem : ",selectedItem)
             console.log("selectedBusinessPartner : ", selectedBusinessPartner)
-            console.log("sDate ::", new Date(sDate))
             console.log("oModel : ",oModel)
-            console.log("sOrderName : ", sOrderName)
-            console.log("sOrderCode : ",sOrderCode)
 
-            //effectuer la requête POST
             Models.Orders().post({
-                CardName: sOrderName,
-                CardCode: sOrderCode,
+                CardName: selectedBusinessPartner.CardName,
+                CardCode: selectedBusinessPartner.CardCode,
+                CardType: selectedBusinessPartner.CardType,
+                ItemCode: selectedItem.ItemCode,
                 DocDueDate: new Date(),
                 DocumentLines: [
                     {
-                        ItemCode: ItemCode,
+                        ItemCode: selectedItem.ItemCode,
                         Quantity: 1
                     }
                 ]

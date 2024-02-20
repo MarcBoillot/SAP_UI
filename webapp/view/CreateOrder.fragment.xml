@@ -22,7 +22,7 @@
                         id="selectedBusinessPartner"
                         width="500px"
                         forceSelection="false"
-                        selectedKey="{selectedBusinessPartnerModel>/CardName}"
+                        selectedKey="{selectedBusinessPartnerModel>/CardCode}"
                         items="{
 						path: 'BusinessPartnersModel>/',
 						sorter: { path: 'CardName' }
@@ -48,13 +48,9 @@
             <Label text="Entrez une Quantity"/>
             <Input value="1"/>
         </VBox>
-
-
         <!--        <Label text="Entrer une DATE"/>-->
         <!--&lt;!&ndash;        <Input value="{path: 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" placeholder="Exemple : 19/12/2024 "/>&ndash;&gt;-->
         <!--        <Input value="{/DocDueDate}" placeholder="Exemple : 19/12/2024 "/>-->
-
-
         <buttons>
             <Button text="Post" press="onCreateNewOrder"/>
             <Button text="Close" press="onCloseCreateOrder"/>
