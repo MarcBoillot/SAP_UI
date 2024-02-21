@@ -43,10 +43,10 @@ sap.ui.define([
 
         onRouteMatch: async function () {
 
-            const BusinessPartners = await Models.BusinessPartners().top(10).get()
+            await this.getBusinessPartner()
             await this.getOrders()
             await this.getItems()
-            this._setModel(BusinessPartners.value, "BusinessPartnersModel")
+
 
             console.log("top 10 items : ", this._getModel("itemsModel").getData());
             console.log("top 15 orders : ", this._getModel("ordersModel").getData());
@@ -78,6 +78,10 @@ sap.ui.define([
 
 // ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
 
+        getBusinessPartner: async function(){
+            const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(10).get()
+            this._setModel(BusinessPartners.value, "BusinessPartnersModel")
+        },
 
         getOrders: async function () {
             const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(15).get();
@@ -99,7 +103,9 @@ sap.ui.define([
             sap.ui.getCore().byId("AddItemToOrder").close()
         },
 
-        onCancelDeleteItem: function () {
+        onCancelDeleteItem: async function () {
+            let that = this
+            await that.getOrders()
             sap.ui.getCore().byId("deleteItem").close()
         },
 
@@ -107,7 +113,9 @@ sap.ui.define([
             this._byId("AddItemToOrder").close();
         },
 
-        onCloseCreateOrder: function () {
+        onCloseCreateOrder: async function () {
+            let that = this
+            await that.getOrders()
             this._byId("createOrderDialog").close();
         },
 
@@ -119,7 +127,6 @@ sap.ui.define([
 // ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //
 
 
-        // ecoute de l'event sur le button pour savoir quel orderModel je recupere
         onExpandSelection: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const docNum = selectedRow.DocNum
@@ -128,7 +135,7 @@ sap.ui.define([
             console.log("docEntry : ", docEntry)
             console.log("selectedRow", selectedRow)
             let that = this
-            // ensuite je charge le fragment pour afficher la vue des elements que contient l'order selected
+
             if (!this._byId("itemsDialog")) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.Items",
@@ -164,7 +171,7 @@ sap.ui.define([
 
 // -------------------------------------------------------------------------ADD AN ITEM IN ORDER--------------------------------------------------------------------------------- //
 
-        onOpenDialogAddItem: function (oEvent) {
+        onOpenDialogAddItem: function () {
             let that = this
             if (!this._byId("AddItemToOrder")) {
                 this._oDialogCreate = Fragment.load({
@@ -174,7 +181,7 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(function () {
+                    oDialog.getEndButton(async ()=>{
                         oDialog.close()
                     });
 
@@ -224,16 +231,14 @@ sap.ui.define([
                 };
 
                 //je patch les nouvelles données
+               await Models.Orders().patch(dataToPatch, idOrder).then(function () {
+                   console.log("PATCH successful");
+               }).catch(function (error) {
+                   console.error("PATCH failed", error);
+               });
 
-                Models.Orders().patch(dataToPatch, idOrder).then(function () {
-                    console.log("Item added to order successfully");
-                }).catch(function (error) {
-                    console.error("Failed to add item to order", error);
-                });
-
-                //avant la fermeture du dialog je met a jour le model
-
-                await that.getOrders();
+                //avant la fermeture du dialog je met a jour le model ne fonctionne pas sur fragment
+                await this.getOrders();
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
@@ -254,7 +259,7 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(function () {
+                    oDialog.getEndButton(async function () {
                         oDialog.close()
                     });
                     oDialog.setModel(new JSONModel({}), "selectedItemModel2")
@@ -268,21 +273,20 @@ sap.ui.define([
             }
         },
 
-        onCreateNewOrder: function (event) {
+        onCreateNewOrder: async function (event) {
             let that = this
             const dialog = event.getSource().getParent();
             const selectedItem = dialog.getModel("selectedItemModel2").getData();
             const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
             let oModel = that.getView().getModel();
-            console.log("dialog : ",dialog)
-            console.log("selectedItem : ",selectedItem)
-            console.log("selectedBusinessPartner : ", selectedBusinessPartner)
-            console.log("oModel : ",oModel)
 
-            Models.Orders().post({
-                CardName: selectedBusinessPartner.CardName,
+            console.log("dialog : ", dialog)
+            console.log("selectedItem : ", selectedItem)
+            console.log("selectedBusinessPartner : ", selectedBusinessPartner)
+            console.log("oModel : ", oModel)
+
+            await Models.Orders().post({
                 CardCode: selectedBusinessPartner.CardCode,
-                CardType: selectedBusinessPartner.CardType,
                 ItemCode: selectedItem.ItemCode,
                 DocDueDate: new Date(),
                 DocumentLines: [
@@ -296,6 +300,9 @@ sap.ui.define([
             }).catch(function (error) {
                 console.error("POST failed", error);
             });
+            // refresh done
+            await that.getOrders();
+            dialog.close();
         },
 
 
@@ -326,7 +333,6 @@ sap.ui.define([
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
                     oDialog.getEndButton(async function () {
-                        await that.getOrders()
                         oDialog.close()
                     });
 
@@ -367,13 +373,14 @@ sap.ui.define([
             console.log("updatedItems", updatedItems)
 
             // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
-            Models.Orders().paatch({
+            await Models.Orders().paatch({
                 DocumentLines: updatedItems
             }, idOrder).then(() => {
                 console.log("Item deleted successfully!");
             }).catch((error) => {
                 console.error("Error deleting item:", error);
             });
+            //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
             await that.getOrders();
             dialog.close()
             console.log("selected Item : ", selectedItem);
