@@ -14,8 +14,8 @@
                 <Button text="Add Item" press="onOpenDialogAddItem"/>
             </OverflowToolbar>
             <l:Table
-                    rows="{path:'fragmentModel>/selectedRow/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
-                    visibleRowCount="{ordersModel}.length">
+                    rows="{path:'fragmentModel>/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
+                    >
                 <l:columns>
                     <l:Column>
                         <Label text="Name"/>

@@ -78,7 +78,7 @@ sap.ui.define([
 
 // ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
 
-        getBusinessPartner: async function(){
+        getBusinessPartner: async function () {
             const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(10).get()
             this._setModel(BusinessPartners.value, "BusinessPartnersModel")
         },
@@ -97,15 +97,10 @@ sap.ui.define([
 // ----------------------------------------------------------------------------CLOSE DIALOG------------------------------------------------------------------------------ //
 
         onCancel: async function () {
-            //mise a jour du model qui se fait seulement dans l'affichage orderTable
-            let that = this
-            await that.getOrders();
             sap.ui.getCore().byId("AddItemToOrder").close()
         },
 
         onCancelDeleteItem: async function () {
-            let that = this
-            await that.getOrders()
             sap.ui.getCore().byId("deleteItem").close()
         },
 
@@ -114,8 +109,6 @@ sap.ui.define([
         },
 
         onCloseCreateOrder: async function () {
-            let that = this
-            await that.getOrders()
             this._byId("createOrderDialog").close();
         },
 
@@ -143,21 +136,13 @@ sap.ui.define([
                 }).then(function (oDialogItem) {
                     that.oView.addDependent(oDialogItem);
                     oDialogItem.attachAfterClose(() => oDialogItem.destroy())
-                    oDialogItem.getEndButton().attachPress(async () => {
-                        await that.getOrders()
-                        await that.getItems()
+                    oDialogItem.getEndButton().attachPress(() => {
                         oDialogItem.close()
                     })
 
                     // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
-                    that._setModel({
-                        selectedRow: selectedRow,
-                        DocNum: docNum,
-                        DocEntry: docEntry
-                    }, "fragmentModel");
-
+                    that._setModel(selectedRow, "fragmentModel");
                     oDialogItem.open();
-
                     const table = that._byId("table")
                     console.log("id table", table)
                 });
@@ -181,7 +166,7 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(async ()=>{
+                    oDialog.getEndButton(async () => {
                         oDialog.close()
                     });
 
@@ -205,8 +190,8 @@ sap.ui.define([
             const dialog = event.getSource().getParent();
             console.log(dialog)
             const selectedItem = dialog.getModel("selectedItemModel2").getData();
-            const idOrder = this._getModel("fragmentModel").getData().selectedRow.DocEntry;
-            const documentLines = this._getModel("fragmentModel").getData().selectedRow.DocumentLines;
+            const idOrder = this._getModel("fragmentModel").getData().DocEntry;
+            const documentLines = this._getModel("fragmentModel").getData().DocumentLines;
 
             if (Array.isArray(documentLines)) {
                 //pour ajouter et pas ecraser la ligne deja existante
@@ -231,14 +216,15 @@ sap.ui.define([
                 };
 
                 //je patch les nouvelles données
-               await Models.Orders().patch(dataToPatch, idOrder).then(function () {
-                   console.log("PATCH successful");
-               }).catch(function (error) {
-                   console.error("PATCH failed", error);
-               });
+                await Models.Orders().patch(dataToPatch, idOrder).then(function () {
+                    console.log("PATCH successful");
+                }).catch(function (error) {
+                    console.error("PATCH failed", error);
+                });
 
                 //avant la fermeture du dialog je met a jour le model ne fonctionne pas sur fragment
-                await this.getOrders();
+                let updatedOrder = await Models.Orders().id(idOrder).get();
+                this._setModel(updatedOrder, 'fragmentModel');
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
@@ -361,7 +347,7 @@ sap.ui.define([
             const selectedItem = orderModelData.selectedItem;
             const idOrder = orderModelData.selectedItem.DocEntry;
             const allItemsInOrder = this._getModel("fragmentModel").getData();
-            const items = allItemsInOrder.selectedRow.DocumentLines;
+            const items = allItemsInOrder.DocumentLines;
             // filter methode pour tableau
             const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
 
@@ -373,15 +359,15 @@ sap.ui.define([
             console.log("updatedItems", updatedItems)
 
             // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
-            await Models.Orders().paatch({
-                DocumentLines: updatedItems
-            }, idOrder).then(() => {
-                console.log("Item deleted successfully!");
-            }).catch((error) => {
-                console.error("Error deleting item:", error);
-            });
+            await Models.Orders().patch({DocumentLines: updatedItems}, idOrder, true)
+                .then(() => {
+                    console.log("Item deleted successfully!");
+                }).catch((error) => {
+                    console.error("Error deleting item:", error);
+                });
             //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
-            await that.getOrders();
+            let updatedOrder = await Models.Orders().id(idOrder).get();
+            this._setModel(updatedOrder, 'fragmentModel');
             dialog.close()
             console.log("selected Item : ", selectedItem);
 
