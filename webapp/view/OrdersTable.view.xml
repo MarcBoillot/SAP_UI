@@ -4,7 +4,7 @@
           xmlns="sap.m"
           xmlns:l="sap.ui.table"
          >
-    <f:DynamicPage id="item" title="{ordersModel>/}" showNavButton="true" navButtonPress="handleNavButtonPress">
+    <f:DynamicPage id="item" title="{ordersModel>/}" >
         <f:header>
             <f:DynamicPageHeader pinnable="false">
                 <FlexBox alignItems="Center" justifyContent="SpaceBetween">
@@ -17,7 +17,6 @@
             <l:Table
                     id="table"
                     rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
-                    visibleRowCount="500px"
                     selectionMode="MultiToggle"
                     enableSelectAll="false"
                     ariaLabelledBy="title">
@@ -60,9 +59,10 @@
                         </l:template>
                     </l:Column>
                     <l:Column>
-                        <Label text="Price "/>
+                        <Label text="TotalPrice "/>
                         <l:template>
-                            <Text text="{ordersModel>PriceAfterVAT} {ordersModel>Currency}" wrapping="false"/>
+                            <Text text="{fragmentModel3>sumPricesForRow}" wrapping="false"/>
+
                         </l:template>
                     </l:Column>
                     <l:Column>
