@@ -42,10 +42,10 @@ sap.ui.define([
 // --------------------------------------------------------------------ROUTEMATCH-------------------------------------------------------------------------------------- //
 
         onRouteMatch: async function () {
+
             await this.getBusinessPartner()
             await this.getOrders()
             await this.getItems()
-            await this.sumPricesItems()
             console.log("top 10 items : ", this._getModel("itemsModel").getData());
             console.log("top 15 orders : ", this._getModel("ordersModel").getData());
             console.log("top 10 clients : ", this._getModel("BusinessPartnersModel").getData());
@@ -60,7 +60,7 @@ sap.ui.define([
         },
 
 
-// ---------------------------------------------------------------------------MODIFICATION IN CHOICE------------------------------------------------------------------------------- //
+// -------------------------------------------MODIFICATION IN CHOICE------------------------------------------------- //
 
         onSelectChange: function (event) {
             const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
@@ -72,7 +72,7 @@ sap.ui.define([
             this._getModel("selectedBusinessPartnerModel").getData().CardCode = selectedBusinessPartner.CardCode
         },
 
-// ---------------------------------------------------------------------------REFRESH WITH REQUEST------------------------------------------------------------------------------- //
+// --------------------------------------------------REFRESH WITH REQUEST-------------------------------------------- //
 
         getBusinessPartner: async function () {
             const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(10).get()
@@ -80,10 +80,14 @@ sap.ui.define([
         },
 
         getOrders: async function () {
-            const order = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(15).get();
-            this._setModel(order.value, "ordersModel")
+            const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(15).get();
+            orders.value.forEach(function (order) {
+                let pricesArray = order.DocumentLines.map(price => price.PriceAfterVAT);
+                let sumPricesCurrentOrder = pricesArray.reduce((total, currentValue) => total + currentValue, 0);
+                order.TotalPrice = sumPricesCurrentOrder;
+            });
+            this._setModel(orders.value, "ordersModel")
         },
-
 
         getItems: async function () {
             const item = await Models.Items().filter("Frozen ne 'tYES'").top(10).get()
@@ -110,42 +114,6 @@ sap.ui.define([
 
         onMasterView: function () {
             this.getOwnerComponent().getRouter().navTo('Master')
-        },
-
-// ------------------------------------------------------------------------------SUM ITEMS IN ORDER------------------------------------------------------------------------- //
-        sumPricesItems: function () {
-            let that = this;
-            const ordersModel = that._getModel("ordersModel");
-
-            if (ordersModel) {
-                const listOrders = ordersModel.getData();
-                let sumPrices = 0;
-
-                listOrders.forEach(function (order) {
-                    if (order && order.DocumentLines) {
-                        const pricesArray = order.DocumentLines.map(price => price.PriceAfterVAT);
-
-                        //Calcule la somme des prix pour chaque ligne
-                        const sumPricesForRow = pricesArray.reduce((total, currentValue) => total + currentValue, 0);
-
-                        // Accumulez la somme pour toutes les lignes
-                        sumPrices += sumPricesForRow;
-
-                        console.log("order : ", order);
-                        console.log("pricesArray : ", pricesArray);
-                        console.log("sumPricesForRow : ", sumPricesForRow);
-                    }
-                });
-
-                // Mettre à jour le modèle avec la somme totale
-                that._setModel({
-                    sumPrices: sumPrices
-                }, "fragmentModel3");
-
-                console.log("Total sumPrices : ", sumPrices);
-            } else {
-                console.error("ordersModel not found");
-            }
         },
 
 // ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //

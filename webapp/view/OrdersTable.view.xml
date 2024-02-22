@@ -61,7 +61,7 @@
                     <l:Column>
                         <Label text="TotalPrice "/>
                         <l:template>
-                            <Text text="{fragmentModel3>sumPricesForRow}" wrapping="false"/>
+                            <Text text="{ordersModel>TotalPrice}" wrapping="false"/>
 
                         </l:template>
                     </l:Column>
