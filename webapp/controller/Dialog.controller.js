@@ -59,6 +59,17 @@ sap.ui.define([
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
 
+        openDialog:function (oDialogName,oModelName) {
+            let that=this
+            that.oModelName = "newItemModel"
+            that.oView.addDependent(oDialogName);
+            oDialogName.attachAfterClose(() => oDialog.destroy())
+            oDialogName.getEndButton(async () => {
+                oDialogName.close()
+            });
+            oDialogName.setModel(new JSONModel({}),oModelName)
+            oDialogName.open();
+        },
 
 // -------------------------------------------MODIFICATION IN SELECT------------------------------------------------- //
 
@@ -81,7 +92,6 @@ sap.ui.define([
 
         getOrders: async function () {
             const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(20).get();
-
             orders.value.forEach(function (order) {
                 order.DocumentLines.forEach(function (item) {
                     if (typeof item === 'object') {
@@ -179,25 +189,18 @@ sap.ui.define([
 // ------------------------------------------------ADD AN ITEM IN ORDER------------------------------------------------//
 
         onOpenDialogAddItem: function () {
-            let that = this
-            if (!this._byId("AddItemToOrder")) {
+            let that = this;
+            const oDialogName = this._byId("AddItemToOrder");
+            const oModelName = "newItemModel";
+            if (!oDialogName) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.AddItemToOrder",
                     controller: this
                 }).then(function (oDialog) {
-
-                    that.oView.addDependent(oDialog);
-                    oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(async () => {
-                        oDialog.close()
-                    });
-                    oDialog.setModel(new JSONModel({}), "newItemModel")
-                    oDialog.open();
+                    that.openDialog(oDialog, oModelName);
                 });
             } else {
-                this._oDialogCreate.then(function (oDialog) {
-                    oDialog.open();
-                })
+                this._oDialogCreate.then(oDialog => oDialog.open());
             }
         },
 
@@ -258,7 +261,7 @@ sap.ui.define([
                 }).then(function (oDialog) {
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(async function () {
+                    oDialog.getEndButton(function () {
                         oDialog.close()
                     });
                     oDialog.setModel(new JSONModel({}), "newItemModel")
@@ -330,7 +333,7 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(async function () {
+                    oDialog.getEndButton( function () {
                         oDialog.close()
                     });
 
