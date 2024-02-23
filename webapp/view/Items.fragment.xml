@@ -24,7 +24,7 @@
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">
-                        <Label text="Price"/>
+                        <Label text="Price/u"/>
                         <l:template>
                             <Text text="{selectedRowModel>PriceAfterVAT} {selectedRowModel>Currency}" wrapping="false"/>
                         </l:template>
@@ -33,6 +33,12 @@
                         <Label text="Qty"/>
                         <l:template>
                             <Text text="{selectedRowModel>Quantity}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column width="100px">
+                        <Label text="Total Price"/>
+                        <l:template>
+                            <Text text="{selectedRowModel>totalPriceForItem} {selectedRowModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">

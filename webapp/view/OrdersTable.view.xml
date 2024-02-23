@@ -58,7 +58,7 @@
                             <Text text="{path : 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" wrapping="false" />
                         </l:template>
                     </l:Column>
-                    <l:Column>
+                    <l:Column width="100px">
                         <Label text="TotalPrice "/>
                         <l:template>
                             <Text text="{ordersModel>TotalPrice}" wrapping="false"/>
@@ -66,9 +66,9 @@
                         </l:template>
                     </l:Column>
                     <l:Column>
-                        <Label text="Qty "/>
+                        <Label text="Address "/>
                         <l:template>
-                            <Text text="{ordersModel>Quantity}" wrapping="false"/>
+                            <Text text="{ordersModel>Address}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">

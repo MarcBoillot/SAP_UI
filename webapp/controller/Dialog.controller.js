@@ -39,7 +39,7 @@ sap.ui.define([
         },
 
 
-// --------------------------------------------------------------------ROUTEMATCH-------------------------------------------------------------------------------------- //
+// ------------------------------------------------ROUTEMATCH------------------------------------------------ //
 
         onRouteMatch: async function () {
 
@@ -60,7 +60,7 @@ sap.ui.define([
         },
 
 
-// -------------------------------------------MODIFICATION IN CHOICE------------------------------------------------- //
+// -------------------------------------------MODIFICATION IN SELECT------------------------------------------------- //
 
         onSelectChange: function (event) {
             const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
@@ -72,7 +72,7 @@ sap.ui.define([
             this._getModel("selectedBusinessPartnerModel").getData().CardCode = selectedBusinessPartner.CardCode
         },
 
-// --------------------------------------------------REFRESH WITH REQUEST-------------------------------------------- //
+// --------------------------------------------------ALL REQUEST IN BDD-------------------------------------------- //
 
         getBusinessPartner: async function () {
             const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
@@ -81,20 +81,47 @@ sap.ui.define([
 
         getOrders: async function () {
             const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(20).get();
+
             orders.value.forEach(function (order) {
-                let pricesArray = order.DocumentLines.map(price => price.PriceAfterVAT);
-                let sumPricesCurrentOrder = pricesArray.reduce((total, currentValue) => total + currentValue, 0);
-                order.TotalPrice = sumPricesCurrentOrder;
+                order.DocumentLines.forEach(function (item) {
+                    if (typeof item === 'object') {
+                        if (item.PriceAfterVAT !== 0 && item.totalPriceForItem !== 0) {
+                            item.totalPriceForItem = (item.PriceAfterVAT * item.Quantity).toFixed(2);
+                        } else {
+                            item.totalPriceForItem = item.PriceAfterVAT.toFixed(2);
+                        }
+                    }
+                });
+                let totalQuantity = order.DocumentLines.reduce((total, currentLine) => {
+                    if (typeof currentLine === 'object') {
+                        return total + currentLine.Quantity;
+                    } else {
+                        return total;
+                    }
+                }, 0);
+                let sumPricesCurrentOrder = order.DocumentLines.reduce((total, currentLine) => {
+                    if (typeof currentLine === 'object') {
+                        let totalPriceForItem = currentLine.PriceAfterVAT * currentLine.Quantity;
+                        return total + totalPriceForItem;
+                    } else {
+                        return total;
+                    }
+                }, 0);
+                order.TotalPrice = sumPricesCurrentOrder.toFixed(2);
+                order.TotalQuantity = totalQuantity;
             });
-            this._setModel(orders.value, "ordersModel")
+            this._setModel(orders.value, "ordersModel");
         },
+
+
+
 
         getItems: async function () {
             const item = await Models.Items().filter("Frozen ne 'tYES'").top(15).get()
             this._setModel(item.value, "itemsModel")
         },
 
-// ----------------------------------------------------------------------------CLOSE DIALOG------------------------------------------------------------------------------ //
+// ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
 
         onCancelAddItem: function () {
             sap.ui.getCore().byId("AddItemToOrder").close()
@@ -112,7 +139,7 @@ sap.ui.define([
             this.getOwnerComponent().getRouter().navTo('Master')
         },
 
-// ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //
+// ------------------------------------------------SHOW ITEMS IN ORDER------------------------------------------------ //
 
 
         onShowItemsInOrder: function (oEvent) {
@@ -149,7 +176,7 @@ sap.ui.define([
         },
 
 
-// -------------------------------------------------------------------------ADD AN ITEM IN ORDER--------------------------------------------------------------------------------- //
+// ------------------------------------------------ADD AN ITEM IN ORDER------------------------------------------------//
 
         onOpenDialogAddItem: function () {
             let that = this
@@ -220,7 +247,7 @@ sap.ui.define([
         },
 
 
-// ----------------------------------------------------------------------------ADD AN ORDER------------------------------------------------------------------------------ //
+// ------------------------------------------------ADD AN ORDER------------------------------------------------//
 
         onOpenDialogAddOrder: function () {
             let that = this
@@ -278,7 +305,7 @@ sap.ui.define([
         },
 
 
-// ---------------------------------------------------------------------------DELETE AN ITEM IN ORDER------------------------------------------------------------------------------- //
+// ------------------------------------------------DELETE AN ITEM IN ORDER------------------------------------------------ //
 
         onOpenDialogDelete: function (oEvent) {
             let that = this
