@@ -7,32 +7,32 @@
         id="ItemsFragment">
     <Dialog contentWidth="1200px"
             id="itemsDialog"
-            title="{= 'DocEntry: ' + ${fragmentModel>/DocEntry} + ' ' + 'DocNum: ' + ${fragmentModel>/DocNum}}"
+            title="{= 'DocEntry: ' + ${selectedRowModel>/DocEntry} + ' ' + 'DocNum: ' + ${selectedRowModel>/DocNum}}"
     >
         <content>
             <OverflowToolbar style="Clear">
                 <Button text="Add Item" press="onOpenDialogAddItem"/>
             </OverflowToolbar>
             <l:Table
-                    rows="{path:'fragmentModel>/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
+                    rows="{path:'selectedRowModel>/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
                     >
                 <l:columns>
                     <l:Column>
                         <Label text="Name"/>
                         <l:template>
-                            <Text text="{fragmentModel>ItemDescription}  ({fragmentModel>BarCode})" wrapping="false" />
+                            <Text text="{selectedRowModel>ItemDescription}  ({selectedRowModel>BarCode})" wrapping="false" />
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">
                         <Label text="Price"/>
                         <l:template>
-                            <Text text="{fragmentModel>PriceAfterVAT} {fragmentModel>Currency}" wrapping="false"/>
+                            <Text text="{selectedRowModel>PriceAfterVAT} {selectedRowModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="50px">
                         <Label text="Qty"/>
                         <l:template>
-                            <Text text="{fragmentModel>Quantity}" wrapping="false"/>
+                            <Text text="{selectedRowModel>Quantity}" wrapping="false"/>
                         </l:template>
                     </l:Column>
                     <l:Column width="100px">

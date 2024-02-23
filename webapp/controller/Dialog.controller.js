@@ -46,9 +46,9 @@ sap.ui.define([
             await this.getBusinessPartner()
             await this.getOrders()
             await this.getItems()
-            console.log("top 10 items : ", this._getModel("itemsModel").getData());
-            console.log("top 15 orders : ", this._getModel("ordersModel").getData());
-            console.log("top 10 clients : ", this._getModel("BusinessPartnersModel").getData());
+            console.log("top 15 items : ", this._getModel("itemsModel").getData());
+            console.log("top 20 orders : ", this._getModel("ordersModel").getData());
+            console.log("top 15 clients : ", this._getModel("BusinessPartnersModel").getData());
 
             // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
@@ -64,7 +64,7 @@ sap.ui.define([
 
         onSelectChange: function (event) {
             const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
-            this._getModel("selectedItemModel2").getData().ItemCode = selectedItem.ItemCode
+            this._getModel("newItemModel").getData().ItemCode = selectedItem.ItemCode
         },
 
         onSelectChangeBusinessPartner: function (event) {
@@ -75,12 +75,12 @@ sap.ui.define([
 // --------------------------------------------------REFRESH WITH REQUEST-------------------------------------------- //
 
         getBusinessPartner: async function () {
-            const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(10).get()
+            const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
             this._setModel(BusinessPartners.value, "BusinessPartnersModel")
         },
 
         getOrders: async function () {
-            const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(15).get();
+            const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(20).get();
             orders.value.forEach(function (order) {
                 let pricesArray = order.DocumentLines.map(price => price.PriceAfterVAT);
                 let sumPricesCurrentOrder = pricesArray.reduce((total, currentValue) => total + currentValue, 0);
@@ -90,25 +90,21 @@ sap.ui.define([
         },
 
         getItems: async function () {
-            const item = await Models.Items().filter("Frozen ne 'tYES'").top(10).get()
+            const item = await Models.Items().filter("Frozen ne 'tYES'").top(15).get()
             this._setModel(item.value, "itemsModel")
         },
 
 // ----------------------------------------------------------------------------CLOSE DIALOG------------------------------------------------------------------------------ //
 
-        onCancel: async function () {
+        onCancelAddItem: function () {
             sap.ui.getCore().byId("AddItemToOrder").close()
         },
 
-        onCancelDeleteItem: async function () {
+        onCancelDeleteItem: function () {
             sap.ui.getCore().byId("deleteItem").close()
         },
 
-        handleClose: function () {
-            this._byId("AddItemToOrder").close();
-        },
-
-        onCloseCreateOrder: async function () {
+        onCloseCreateOrder: function () {
             this._byId("createOrderDialog").close();
         },
 
@@ -119,7 +115,7 @@ sap.ui.define([
 // ------------------------------------------------------------------------------SHOW ITEMS IN ORDER---------------------------------------------------------------------------- //
 
 
-        onExpandSelection: function (oEvent) {
+        onShowItemsInOrder: function (oEvent) {
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const docNum = selectedRow.DocNum
             const docEntry = selectedRow.DocEntry
@@ -140,7 +136,7 @@ sap.ui.define([
                     })
 
                     // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
-                    that._setModel(selectedRow, "fragmentModel");
+                    that._setModel(selectedRow, "selectedRowModel");
                     oDialogItem.open();
                     const table = that._byId("table")
                     console.log("id table", table)
@@ -168,17 +164,11 @@ sap.ui.define([
                     oDialog.getEndButton(async () => {
                         oDialog.close()
                     });
-
-                    oDialog.setModel(new JSONModel({}), "selectedItemModel2")
-                    // that._setModel({
-                    //     selectedRow: selectedRow,
-                    // },"fragmentCreateModel");
+                    oDialog.setModel(new JSONModel({}), "newItemModel")
                     oDialog.open();
                 });
             } else {
                 this._oDialogCreate.then(function (oDialog) {
-                    // oNewItems.setModel(new JSONModel({}), "selectedItemModel2")
-
                     oDialog.open();
                 })
             }
@@ -188,22 +178,20 @@ sap.ui.define([
             let that = this;
             const dialog = event.getSource().getParent();
             console.log(dialog)
-            const selectedItem = dialog.getModel("selectedItemModel2").getData();
-            const idOrder = this._getModel("fragmentModel").getData().DocEntry;
-            const documentLines = this._getModel("fragmentModel").getData().DocumentLines;
+            const selectedItem = dialog.getModel("newItemModel").getData();
+            const idOrder = this._getModel("selectedRowModel").getData().DocEntry;
+            const documentLines = this._getModel("selectedRowModel").getData().DocumentLines;
 
             if (Array.isArray(documentLines)) {
                 //pour ajouter et pas ecraser la ligne deja existante
                 const lineNumArray = documentLines.map(docLine => docLine.LineNum);
                 const highestLineNum = Math.max(...lineNumArray);
-
-                console.log("fragmentModel : ", idOrder);
+                console.log("selectedRowModel : ", idOrder);
                 console.log("selectedItem dans le onPostItem ::", selectedItem);
                 console.log("LineNum Array:", lineNumArray);
                 console.log("Highest LineNum:", highestLineNum);
 
                 // j'ajoute dans le model a la ligne suivante l'item selected et sa quantity
-
                 const dataToPatch = {
                     DocumentLines: [
                         {
@@ -223,7 +211,8 @@ sap.ui.define([
 
                 //avant la fermeture du dialog je met a jour le model ne fonctionne pas sur fragment
                 let updatedOrder = await Models.Orders().id(idOrder).get();
-                this._setModel(updatedOrder, 'fragmentModel');
+                this._setModel(updatedOrder, 'selectedRowModel');
+                await that.getOrders()
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
@@ -239,15 +228,13 @@ sap.ui.define([
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.CreateOrder",
                     controller: this
-
                 }).then(function (oDialog) {
-
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
                     oDialog.getEndButton(async function () {
                         oDialog.close()
                     });
-                    oDialog.setModel(new JSONModel({}), "selectedItemModel2")
+                    oDialog.setModel(new JSONModel({}), "newItemModel")
                     oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
                     oDialog.open();
                 });
@@ -261,7 +248,7 @@ sap.ui.define([
         onCreateNewOrder: async function (event) {
             let that = this
             const dialog = event.getSource().getParent();
-            const selectedItem = dialog.getModel("selectedItemModel2").getData();
+            const selectedItem = dialog.getModel("newItemModel").getData();
             const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
             let oModel = that.getView().getModel();
 
@@ -295,8 +282,7 @@ sap.ui.define([
 
         onOpenDialogDelete: function (oEvent) {
             let that = this
-
-            const selectedItem = oEvent.getSource().getBindingContext("fragmentModel").getObject();
+            const selectedItem = oEvent.getSource().getBindingContext("selectedRowModel").getObject();
             const ItemCode = selectedItem.ItemCode;
             const ItemDescription = selectedItem.ItemDescription;
             const LineNum = selectedItem.LineNum
@@ -327,7 +313,7 @@ sap.ui.define([
                         ItemDescription: selectedItem.ItemDescription,
                         LineNum: selectedItem.LineNum + 1,
                         Quantity: selectedItem.Quantity
-                    }, "fragmentModel1");
+                    }, "selectedItemForDeleteModel");
 
                     oDialog.open();
                 });
@@ -342,16 +328,16 @@ sap.ui.define([
         onDeleteItem: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-            const orderModelData = this._getModel("fragmentModel1").getData();
+            const orderModelData = this._getModel("selectedItemForDeleteModel").getData();
             const selectedItem = orderModelData.selectedItem;
             const idOrder = orderModelData.selectedItem.DocEntry;
-            const allItemsInOrder = this._getModel("fragmentModel").getData();
+            const allItemsInOrder = this._getModel("selectedRowModel").getData();
             const items = allItemsInOrder.DocumentLines;
             // filter methode pour tableau
             const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
 
             console.log("orderModelData", orderModelData)
-            console.log("selecteditem", selectedItem)
+            console.log("selected item", selectedItem)
             console.log("id : ", idOrder)
             console.log("ordersItems selected : ", allItemsInOrder)
             console.log("items : ", items)
@@ -366,7 +352,7 @@ sap.ui.define([
                 });
             //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
             let updatedOrder = await Models.Orders().id(idOrder).get();
-            this._setModel(updatedOrder, 'fragmentModel');
+            this._setModel(updatedOrder, 'selectedRowModel');
             dialog.close()
             console.log("selected Item : ", selectedItem);
 

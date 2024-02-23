@@ -74,7 +74,7 @@
                     <l:Column width="100px">
                         <Label text="Button"/>
                         <l:template>
-                            <Button  text="itemsView" press="onExpandSelection"/>
+                            <Button  text="itemsView" press="onShowItemsInOrder"/>
                         </l:template>
                     </l:Column>
                 </l:columns>

@@ -36,7 +36,7 @@
                 <Select
                         width="500px"
                         forceSelection="false"
-                        selectedKey="{selectedItemModel2>/ItemCode}"
+                        selectedKey="{newItemModel>/ItemCode}"
                         items="{
 						path: 'itemsModel>/',
 						sorter: { path: 'ItemName' }

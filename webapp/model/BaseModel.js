@@ -225,11 +225,10 @@ sap.ui.define([
                 .always(() => that.busyDialog.close())
         },
 
+        //use patch for add or create something in anything but for delete we need patch where the ReplaceCollection past on true
         patch: async function (dataToPost, id,ReplaceCollectionsOnPatch=false) {
             let that = this
-
             await that.handleAuth()
-
             that.busyDialog.setText("Création en cours...")
             that.busyDialog.open()
             return $.ajax({
@@ -247,7 +246,6 @@ sap.ui.define([
 
         delete: async function (dataToPost, id) {
             let that = this
-
             await that.handleAuth()
 
             that.busyDialog.setText("Suppression en cours...")
@@ -266,9 +264,7 @@ sap.ui.define([
 
         close: async function (id) {
             let that = this
-
             await that.handleAuth()
-
             that.busyDialog.setText("Clôture en cours...")
             that.busyDialog.open()
             return $.ajax({

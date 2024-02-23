@@ -13,7 +13,7 @@
                     id="selectedItem"
                     width="500px"
                     forceSelection="false"
-                    selectedKey="{selectedItemModel2>/ItemCode}"
+                    selectedKey="{newItemModel>/ItemCode}"
                     items="{
 						path: 'itemsModel>/',
 						sorter: { path: 'ItemName' }
@@ -24,9 +24,9 @@
         </HBox>
 
         <Label text="Entrer une Quantité"/>
-        <Input required="true" value="{selectedItemModel2>/Quantity}" placeholder="Exemple : 45 "/>
+        <Input required="true" value="{newItemModel>/Quantity}" placeholder="Exemple : 45 "/>
         <buttons>
-            <Button text="CANCEL" press="onCancel"/>
+            <Button text="CANCEL" press="onCancelAddItem"/>
             <Button text="PATCH_ORDER" press="onAddItemInOrder"/>
         </buttons>
     </Dialog>
