@@ -24,7 +24,7 @@ sap.ui.define([
 
             switch (currentPage) {
                 case "Tags" :
-                    that.getOwnerComponent().getRouter().navTo('Master')
+                    that.getOwnerComponent().getRouter().navTo('Dialog')
                     break
                 case "InventoryCountingLines" :
                     let currentInventory = this._getModel("inventoryCountingLinesModel").getData()
@@ -34,7 +34,7 @@ sap.ui.define([
                     let oHistory = History.getInstance()
                     let sPreviousHash = oHistory.getPreviousHash()
                     if (sPreviousHash !== undefined) window.history.go(-1)
-                    else that.getOwnerComponent().getRouter().navTo('Master')
+                    else that.getOwnerComponent().getRouter().navTo('Dialog')
                     break
             }
 
@@ -102,7 +102,7 @@ sap.ui.define([
 
             switch (selectedOption) {
                 case 'Accueil' :
-                    this.getOwnerComponent().getRouter().navTo('Master')
+                    this.getOwnerComponent().getRouter().navTo('Dialog')
                     break
                 case 'Se déconnecter':
                     this.handleLogout()

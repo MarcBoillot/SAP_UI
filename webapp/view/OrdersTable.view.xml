@@ -23,7 +23,6 @@
                 <l:extension>
                     <OverflowToolbar style="Clear">
                         <Button text="Master" press="onMasterView"/>
-                        <Button text="See details of selection" />
                         <ToolbarSpacer/>
                         <Button text="create" press="onOpenDialogAddOrder"/>
                     </OverflowToolbar>

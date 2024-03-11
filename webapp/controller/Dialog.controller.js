@@ -319,7 +319,6 @@ sap.ui.define([
                     oDialog.getEndButton( function () {
                         oDialog.close()
                     });
-
                     that._setModel({
                         selectedItem: selectedItem,
                         ItemCode: selectedItem.ItemCode,

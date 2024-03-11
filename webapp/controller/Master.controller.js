@@ -154,28 +154,6 @@ sap.ui.define([
             this._byId("helloDialog").close();
         },
 
-        // open: function() {
-        //    let oView = this._oView;
-        //    if(!oView.byId("helloDialog")){
-        //        let oFragmentController = {
-        //            onCloseDialog: function(){
-        //                oView.byId("helloDialog").close();
-        //            }
-        //        }
-        //
-        //        Fragment.load({
-        //            id: oView.getId(),
-        //            name: "wwl.view.Menu",
-        //            controller: oFragmentController
-        //        }).then(function (oDialog) {
-        //            oView.addDependent(oDialog);
-        //            oDialog.open();
-        //        })
-        //    } else{
-        //        oView.byId("helloDialog").open();
-        //    }
-        //
-        // },
 
         onMenuAction: function (oEvent) {
             let oItem = oEvent.getParameter("item"),
@@ -190,14 +168,5 @@ sap.ui.define([
 
             MessageToast.show("Action triggered on item: " + sItemPath);
         },
-
-        calculiSommePrice: function (itemPriceData) {
-            let somme = 0;
-            for (let i = 0; i < itemPriceData.length; i++) {
-                somme += itemPriceData[i].prix;
-            }
-            return itemPriceData;
-        },
-
     });
 });
