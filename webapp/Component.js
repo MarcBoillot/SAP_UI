@@ -25,7 +25,7 @@ sap.ui.define([
 
             this.APP_CONTEXT = {
                 authRequired: true,
-                dbCompany: 'OB3_TEST_NL',
+                dbCompany: 'OB3_TEST',
                 url: {
                     SL: 'https://sap-hana.work-well.fr:50000/b1s/v1/',
                     PrintAPI: 'https://sap.dpia.fr:2660/',

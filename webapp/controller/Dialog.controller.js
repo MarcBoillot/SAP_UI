@@ -46,10 +46,6 @@ sap.ui.define([
             await this.getBusinessPartner()
             await this.getOrders()
             await this.getItems()
-            console.log("top 15 items : ", this._getModel("itemsModel").getData());
-            console.log("top 20 orders : ", this._getModel("ordersModel").getData());
-            console.log("top 15 clients : ", this._getModel("BusinessPartnersModel").getData());
-
             // /** Exemple d'une vue SQL **/
             // const transferRequest = await Views.getTransferRequests()
             // console.log("transferRequest ::", transferRequest)
@@ -63,11 +59,11 @@ sap.ui.define([
             let that=this
             that.oModelName = "newItemModel"
             that.oView.addDependent(oDialogName);
-            oDialogName.attachAfterClose(() => oDialog.destroy())
+            oDialogName.attachAfterClose(() => oDialogName.destroy())
             oDialogName.getEndButton(async () => {
                 oDialogName.close()
             });
-            oDialogName.setModel(new JSONModel({}),oModelName)
+            that._setModel(new JSONModel({}),oModelName)
             oDialogName.open();
         },
 
@@ -153,13 +149,11 @@ sap.ui.define([
 
 
         onShowItemsInOrder: function (oEvent) {
+            let that = this
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const docNum = selectedRow.DocNum
             const docEntry = selectedRow.DocEntry
-            console.log("docNum : ", docNum)
-            console.log("docEntry : ", docEntry)
-            console.log("selectedRow", selectedRow)
-            let that = this
+
 
             if (!this._byId("itemsDialog")) {
                 this._oDialogDetail = Fragment.load({
@@ -176,10 +170,9 @@ sap.ui.define([
                     that._setModel(selectedRow, "selectedRowModel");
                     oDialogItem.open();
                     const table = that._byId("table")
-                    console.log("id table", table)
                 });
             } else {
-                this._oDialogDetail.then(function (oDialog) {
+                this._oDialogDetail.then(function (oDialog){
                     oDialog.open();
                 })
             }
@@ -188,26 +181,28 @@ sap.ui.define([
 
 // ------------------------------------------------ADD AN ITEM IN ORDER------------------------------------------------//
 
+
         onOpenDialogAddItem: function () {
-            let that = this;
+            let that = this
             const oDialogName = this._byId("AddItemToOrder");
             const oModelName = "newItemModel";
             if (!oDialogName) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.AddItemToOrder",
                     controller: this
-                }).then(function (oDialog) {
-                    that.openDialog(oDialog, oModelName);
+                }).then((oDialog) => {
+                    this.openDialog(oDialog, oModelName);
                 });
             } else {
-                this._oDialogCreate.then(oDialog => oDialog.open());
+                this._oDialogCreate.then((oDialog) => {
+                    oDialog.open();
+                });
             }
         },
 
         onAddItemInOrder: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-            console.log(dialog)
             const selectedItem = dialog.getModel("newItemModel").getData();
             const idOrder = this._getModel("selectedRowModel").getData().DocEntry;
             const documentLines = this._getModel("selectedRowModel").getData().DocumentLines;
@@ -216,11 +211,6 @@ sap.ui.define([
                 //pour ajouter et pas ecraser la ligne deja existante
                 const lineNumArray = documentLines.map(docLine => docLine.LineNum);
                 const highestLineNum = Math.max(...lineNumArray);
-                console.log("selectedRowModel : ", idOrder);
-                console.log("selectedItem dans le onPostItem ::", selectedItem);
-                console.log("LineNum Array:", lineNumArray);
-                console.log("Highest LineNum:", highestLineNum);
-
                 // j'ajoute dans le model a la ligne suivante l'item selected et sa quantity
                 const dataToPatch = {
                     DocumentLines: [
@@ -281,12 +271,6 @@ sap.ui.define([
             const selectedItem = dialog.getModel("newItemModel").getData();
             const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
             let oModel = that.getView().getModel();
-
-            console.log("dialog : ", dialog)
-            console.log("selectedItem : ", selectedItem)
-            console.log("selectedBusinessPartner : ", selectedBusinessPartner)
-            console.log("oModel : ", oModel)
-
             await Models.Orders().post({
                 CardCode: selectedBusinessPartner.CardCode,
                 ItemCode: selectedItem.ItemCode,
@@ -317,13 +301,6 @@ sap.ui.define([
             const ItemDescription = selectedItem.ItemDescription;
             const LineNum = selectedItem.LineNum
             const Quantity = selectedItem.Quantity
-
-            console.log("selectedItem : ", selectedItem)
-            console.log("Itemcode : ", ItemCode)
-            console.log("ItemDescription : ", ItemDescription)
-            console.log("LineNum : ", LineNum)
-            console.log("Quantity : ", Quantity)
-
             if (!this._byId("deleteItem")) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.DeleteValidation",
@@ -365,14 +342,6 @@ sap.ui.define([
             const items = allItemsInOrder.DocumentLines;
             // filter methode pour tableau
             const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
-
-            console.log("orderModelData", orderModelData)
-            console.log("selected item", selectedItem)
-            console.log("id : ", idOrder)
-            console.log("ordersItems selected : ", allItemsInOrder)
-            console.log("items : ", items)
-            console.log("updatedItems", updatedItems)
-
             // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
             await Models.Orders().patch({DocumentLines: updatedItems}, idOrder, true)
                 .then(() => {
