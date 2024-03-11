@@ -57,7 +57,7 @@
             </l:Table>
         </content>
         <endButton>
-            <Button text="Close"/>
+            <Button text="Close" press="onCloseItemsDialog"/>
         </endButton>
     </Dialog>
 </core:FragmentDefinition>

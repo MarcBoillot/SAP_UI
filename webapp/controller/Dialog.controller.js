@@ -67,6 +67,32 @@ sap.ui.define([
             oDialogName.open();
         },
 
+//-------------------------------------------------MATH IN PRICE---------------------------------------------//
+
+        transformDocumentLines: function (documentLines) {
+            documentLines.forEach(item => {
+                if (typeof item === 'object') {
+                    item.totalPriceForItem = (item.PriceAfterVAT * item.Quantity).toFixed(2);
+                }
+            });
+        },
+
+        calculateSumPrices: function (documentLines) {
+            const isObject = obj => typeof obj === 'object';
+            return documentLines.reduce((total, currentLine) => {
+                if (isObject(currentLine)) {
+                    const totalPriceForItem = currentLine.PriceAfterVAT * currentLine.Quantity;
+                    return total + totalPriceForItem;
+                }
+                return total;
+            }, 0);
+        },
+
+        calculateTotalQuantity: function (documentLines) {
+            const isObject = obj => typeof obj === 'object';
+            return documentLines.reduce((total, currentLine) => isObject(currentLine) ? total + currentLine.Quantity : total, 0);
+        },
+
 // -------------------------------------------MODIFICATION IN SELECT------------------------------------------------- //
 
         onSelectChange: function (event) {
@@ -88,39 +114,15 @@ sap.ui.define([
 
         getOrders: async function () {
             const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(20).get();
-            orders.value.forEach(function (order) {
-                order.DocumentLines.forEach(function (item) {
-                    if (typeof item === 'object') {
-                        if (item.PriceAfterVAT !== 0 && item.totalPriceForItem !== 0) {
-                            item.totalPriceForItem = (item.PriceAfterVAT * item.Quantity).toFixed(2);
-                        } else {
-                            item.totalPriceForItem = item.PriceAfterVAT.toFixed(2);
-                        }
-                    }
-                });
-                let totalQuantity = order.DocumentLines.reduce((total, currentLine) => {
-                    if (typeof currentLine === 'object') {
-                        return total + currentLine.Quantity;
-                    } else {
-                        return total;
-                    }
-                }, 0);
-                let sumPricesCurrentOrder = order.DocumentLines.reduce((total, currentLine) => {
-                    if (typeof currentLine === 'object') {
-                        let totalPriceForItem = currentLine.PriceAfterVAT * currentLine.Quantity;
-                        return total + totalPriceForItem;
-                    } else {
-                        return total;
-                    }
-                }, 0);
-                order.TotalPrice = sumPricesCurrentOrder.toFixed(2);
-                order.TotalQuantity = totalQuantity;
+
+            orders.value.forEach(order => {
+                this.transformDocumentLines(order.DocumentLines);
+                order.TotalPrice = this.calculateSumPrices(order.DocumentLines).toFixed(2);
+                order.TotalQuantity = this.calculateTotalQuantity(order.DocumentLines);
             });
+
             this._setModel(orders.value, "ordersModel");
         },
-
-
-
 
         getItems: async function () {
             const item = await Models.Items().filter("Frozen ne 'tYES'").top(15).get()
@@ -128,6 +130,7 @@ sap.ui.define([
         },
 
 // ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
+
 
         onCancelAddItem: function () {
             sap.ui.getCore().byId("AddItemToOrder").close()
@@ -139,6 +142,10 @@ sap.ui.define([
 
         onCloseCreateOrder: function () {
             this._byId("createOrderDialog").close();
+        },
+
+        onCloseItemsDialog : function (){
+          this._byId("itemsDialog").close();
         },
 
         onMasterView: function () {
@@ -153,23 +160,21 @@ sap.ui.define([
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const docNum = selectedRow.DocNum
             const docEntry = selectedRow.DocEntry
-
-
-            if (!this._byId("itemsDialog")) {
+            const oDialogName = this._byId("itemsDialog")
+            const oModelName = "table"
+            if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.Items",
                     controller: this
-                }).then(function (oDialogItem) {
-                    that.oView.addDependent(oDialogItem);
-                    oDialogItem.attachAfterClose(() => oDialogItem.destroy())
-                    oDialogItem.getEndButton().attachPress(() => {
-                        oDialogItem.close()
-                    })
-
+                }).then(function (oDialog) {
                     // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
                     that._setModel(selectedRow, "selectedRowModel");
-                    oDialogItem.open();
-                    const table = that._byId("table")
+
+                    that.openDialog(oDialog,oModelName)
+
+
+                    // oDialogItem.open();
+                    // const table = that._byId("table")
                 });
             } else {
                 this._oDialogDetail.then(function (oDialog){
@@ -244,7 +249,8 @@ sap.ui.define([
 
         onOpenDialogAddOrder: function () {
             let that = this
-            if (!this._byId("createOrderDialog")) {
+            const oDialogName = this._byId("createOrderDialog")
+            if (!oDialogName) {
                 this._oDialogCreate = Fragment.load({
                     name: "wwl.view.CreateOrder",
                     controller: this
@@ -353,8 +359,6 @@ sap.ui.define([
             let updatedOrder = await Models.Orders().id(idOrder).get();
             this._setModel(updatedOrder, 'selectedRowModel');
             dialog.close()
-            console.log("selected Item : ", selectedItem);
-
         },
         // ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
