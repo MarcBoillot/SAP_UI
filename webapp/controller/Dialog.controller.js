@@ -41,6 +41,14 @@ sap.ui.define([
 
 // ------------------------------------------------ROUTEMATCH------------------------------------------------ //
 
+        openDialog: function (oDialogName) {
+            this.oView.addDependent(oDialogName);
+            oDialogName.attachAfterClose(() => oDialogName.destroy())
+            oDialogName.getEndButton(() => oDialogName.close());
+            oDialogName.open();
+        },
+
+
         onRouteMatch: async function () {
 
             await this.getBusinessPartner()
@@ -53,14 +61,6 @@ sap.ui.define([
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
-        },
-
-
-        openDialog: function (oDialogName) {
-            this.oView.addDependent(oDialogName);
-            oDialogName.attachAfterClose(() => oDialogName.destroy())
-            oDialogName.getEndButton(() => oDialogName.close());
-            oDialogName.open();
         },
 
         onMasterView: function () {
@@ -126,7 +126,7 @@ sap.ui.define([
         },
 
         getItems: async function () {
-            const item = await Models.Items().filter("Frozen ne 'tYES'").top(15).get()
+            const item = await Models.Items().filter("Frozen ne 'tYES'").filter("BarCode ne 'null'").top(15).get()
             this._setModel(item.value, "itemsModel")
         },
 
