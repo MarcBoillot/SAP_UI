@@ -18,7 +18,7 @@ sap.ui.define([
     let Models
     let Views
 
-    return BaseController.extend("wwl.controller.Dialog", {
+    return BaseController.extend("wwl.controller.Master", {
         Formatter: Formatter,
 
         onInit: function () {
@@ -33,7 +33,7 @@ sap.ui.define([
             });
             this.getView().setModel(oModel);
             this.getOwnerComponent().getRouter()
-                .getRoute("OrdersTable")
+                .getRoute("Master")
                 .attachMatched(this.onRouteMatch, this)
 
         },
@@ -55,16 +55,17 @@ sap.ui.define([
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
 
-        openDialog:function (oDialogName,oModelName) {
-            let that=this
-            that.oModelName = "newItemModel"
-            that.oView.addDependent(oDialogName);
+
+        openDialog: function (oDialogName) {
+            this.oView.addDependent(oDialogName);
             oDialogName.attachAfterClose(() => oDialogName.destroy())
-            oDialogName.getEndButton(async () => {
-                oDialogName.close()
-            });
-            that._setModel(new JSONModel({}),oModelName)
+            oDialogName.getEndButton(() => oDialogName.close());
             oDialogName.open();
+        },
+
+        onMasterView: function () {
+            this.getOwnerComponent().getRouter().navTo('Master')
+            console.log("vous etes sur la master View")
         },
 
 //-------------------------------------------------MATH IN PRICE---------------------------------------------//
@@ -133,24 +134,21 @@ sap.ui.define([
 
 
         onCancelAddItem: function () {
-            sap.ui.getCore().byId("AddItemToOrder").close()
+            this._byId("AddItemToOrder").close()
         },
 
         onCancelDeleteItem: function () {
-            sap.ui.getCore().byId("deleteItem").close()
+            this._byId("deleteItem").close()
         },
 
         onCloseCreateOrder: function () {
             this._byId("createOrderDialog").close();
         },
 
-        onCloseItemsDialog : function (){
-          this._byId("itemsDialog").close();
+        onCloseItemsDialog: function () {
+            this._byId("itemsDialog").close();
         },
 
-        onMasterView: function () {
-            this.getOwnerComponent().getRouter().navTo('Master')
-        },
 
 // ------------------------------------------------SHOW ITEMS IN ORDER------------------------------------------------ //
 
@@ -161,7 +159,6 @@ sap.ui.define([
             const docNum = selectedRow.DocNum
             const docEntry = selectedRow.DocEntry
             const oDialogName = this._byId("itemsDialog")
-            const oModelName = "table"
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.Items",
@@ -169,15 +166,11 @@ sap.ui.define([
                 }).then(function (oDialog) {
                     // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
                     that._setModel(selectedRow, "selectedRowModel");
-
-                    that.openDialog(oDialog,oModelName)
-
-
-                    // oDialogItem.open();
-                    // const table = that._byId("table")
+                    oDialog.setModel(new JSONModel({}), "table")
+                    that.openDialog(oDialog)
                 });
             } else {
-                this._oDialogDetail.then(function (oDialog){
+                this._oDialogDetail.then(function (oDialog) {
                     oDialog.open();
                 })
             }
@@ -188,27 +181,21 @@ sap.ui.define([
 
 
         onOpenDialogAddItem: function () {
-            let that = this
-            const oDialogName = this._byId("AddItemToOrder");
-            const oModelName = "newItemModel";
-            if (!oDialogName) {
-                this._oDialogCreate = Fragment.load({
-                    name: "wwl.view.AddItemToOrder",
-                    controller: this
-                }).then((oDialog) => {
-                    this.openDialog(oDialog, oModelName);
-                });
-            } else {
-                this._oDialogCreate.then((oDialog) => {
-                    oDialog.open();
-                });
-            }
+            Fragment.load({
+                name: "wwl.view.AddItemToOrder",
+                controller: this
+            }).then((oDialog) => {
+                oDialog._setModel({}, "newItemModel")
+                this.openDialog(oDialog);
+            })
         },
 
         onAddItemInOrder: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
+            console.log("dialog ::", dialog)
             const selectedItem = dialog.getModel("newItemModel").getData();
+            console.log("selectedItem ::", selectedItem)
             const idOrder = this._getModel("selectedRowModel").getData().DocEntry;
             const documentLines = this._getModel("selectedRowModel").getData().DocumentLines;
 
@@ -226,15 +213,12 @@ sap.ui.define([
                         }
                     ]
                 };
-
                 //je patch les nouvelles données
                 await Models.Orders().patch(dataToPatch, idOrder).then(function () {
                     console.log("PATCH successful");
                 }).catch(function (error) {
                     console.error("PATCH failed", error);
                 });
-
-                //avant la fermeture du dialog je met a jour le model ne fonctionne pas sur fragment
                 let updatedOrder = await Models.Orders().id(idOrder).get();
                 this._setModel(updatedOrder, 'selectedRowModel');
                 await that.getOrders()
@@ -248,27 +232,14 @@ sap.ui.define([
 // ------------------------------------------------ADD AN ORDER------------------------------------------------//
 
         onOpenDialogAddOrder: function () {
-            let that = this
-            const oDialogName = this._byId("createOrderDialog")
-            if (!oDialogName) {
-                this._oDialogCreate = Fragment.load({
-                    name: "wwl.view.CreateOrder",
-                    controller: this
-                }).then(function (oDialog) {
-                    that.oView.addDependent(oDialog);
-                    oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(function () {
-                        oDialog.close()
-                    });
-                    oDialog.setModel(new JSONModel({}), "newItemModel")
-                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
-                    oDialog.open();
-                });
-            } else {
-                this._oDialogCreate.then(function (oDialog) {
-                    oDialog.open();
-                })
-            }
+            Fragment.load({
+                name: "wwl.view.CreateOrder",
+                controller: this,
+            }).then(function (oDialog) {
+                this.openDialog(oDialog)
+                oDialog._setModel({}, "newItemModel")
+                oDialog._setModel({}, "selectedBusinessPartnerModel")
+            });
         },
 
         onCreateNewOrder: async function (event) {
@@ -316,7 +287,7 @@ sap.ui.define([
 
                     that.oView.addDependent(oDialog);
                     oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton( function () {
+                    oDialog.getEndButton(function () {
                         oDialog.close()
                     });
                     that._setModel({
@@ -335,8 +306,6 @@ sap.ui.define([
                 })
             }
         },
-
-
         onDeleteItem: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
@@ -359,7 +328,35 @@ sap.ui.define([
             this._setModel(updatedOrder, 'selectedRowModel');
             dialog.close()
         },
-        // ----------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------CLOSE AN ORDER------------------------------------------//
+        onClosingOrder: function () {
+            let input = new sap.m.Input({})
+            let label = new sap.m.Label({text: "test"})
+            let Hbox = new sap.m.HBox({items: [label, input]})
+            let dialog = new sap.m.Dialog({
+                title: "dialog",
+                content: [Hbox],
+                beginButton: new sap.m.Button({
+                    press: () => {
+                        console.log(input.getValue())
+                        dialog.close()
+                    }
+                })
+            })
+
+            dialog.open()
+
+            MessageBox.confirm("êtes-vous sûr de?", {
+                actions: ["OUI", "NON", "PEUT-ETRE"],
+                onClose: (sAction) => {
+                    if (sAction === "OUI") {
+                        console.log("oui")
+                    } else {
+                        console.log("non")
+                    }
+                }
+            })
+        }
 
     })
 });

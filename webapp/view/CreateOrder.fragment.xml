@@ -17,7 +17,10 @@
         <!--        <Input value="{/CardCode}" placeholder="Exemple : 07500 "/>-->
         <VBox>
             <HBox>
+                <OverflowToolbar>
+                    <ToolbarSpacer/>
                 <Label text="Select a business Partner"/>
+                <ToolbarSpacer/>
                 <Select
                         id="selectedBusinessPartner"
                         width="500px"
@@ -30,9 +33,13 @@
                 >
                     <core:Item key="{BusinessPartnersModel>CardCode}" text="{BusinessPartnersModel>CardName}"/>
                 </Select>
+                </OverflowToolbar>
             </HBox>
             <HBox>
+                <OverflowToolbar>
+                    <ToolbarSpacer/>
                 <Label text="Select an Item"/>
+                <ToolbarSpacer/>
                 <Select
                         width="500px"
                         forceSelection="false"
@@ -41,18 +48,18 @@
 						path: 'itemsModel>/',
 						sorter: { path: 'ItemName' }
 					}">
-
                     <core:Item key="{itemsModel>ItemCode}" text="{itemsModel>ItemName}"/>
                 </Select>
+                </OverflowToolbar>
             </HBox>
+            <OverflowToolbar>
             <Label text="Entrez une Quantity"/>
-            <Input value="1"/>
+
+            <Input value="1" width="500px" />
+            </OverflowToolbar>
         </VBox>
-        <!--        <Label text="Entrer une DATE"/>-->
-        <!--&lt;!&ndash;        <Input value="{path: 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}" placeholder="Exemple : 19/12/2024 "/>&ndash;&gt;-->
-        <!--        <Input value="{/DocDueDate}" placeholder="Exemple : 19/12/2024 "/>-->
         <buttons>
-            <Button text="Post" press="onCreateNewOrder"/>
+            <Button design="Positive" text="Create this order" press="onCreateNewOrder"/>
             <Button text="Close" press="onCloseCreateOrder"/>
         </buttons>
     </Dialog>

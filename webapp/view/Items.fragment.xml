@@ -12,47 +12,56 @@
         <content>
             <OverflowToolbar style="Clear">
                 <Button text="Add Item" press="onOpenDialogAddItem"/>
+                <ToolbarSpacer/>
+                <Button text="Close this order" press="onClosingOrder" />
             </OverflowToolbar>
             <l:Table
                     rows="{path:'selectedRowModel>/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
                     >
                 <l:columns>
+
                     <l:Column>
                         <Label text="Name"/>
                         <l:template>
                             <Text text="{selectedRowModel>ItemDescription}  ({selectedRowModel>BarCode})" wrapping="false" />
                         </l:template>
                     </l:Column>
+
                     <l:Column width="100px">
                         <Label text="Price/u"/>
                         <l:template>
                             <Text text="{selectedRowModel>PriceAfterVAT} {selectedRowModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
+
                     <l:Column width="50px">
                         <Label text="Qty"/>
                         <l:template>
                             <Text text="{selectedRowModel>Quantity}" wrapping="false"/>
                         </l:template>
                     </l:Column>
+
                     <l:Column width="100px">
                         <Label text="Total Price"/>
                         <l:template>
                             <Text text="{selectedRowModel>totalPriceForItem} {selectedRowModel>Currency}" wrapping="false"/>
                         </l:template>
                     </l:Column>
+
                     <l:Column width="100px">
                         <Label text="Modify"/>
                         <l:template>
                             <Button text="modify" press="onPatchOrder"/>
                         </l:template>
                     </l:Column>
+
                     <l:Column width="100px">
                         <Label text="Delete"/>
                         <l:template>
                             <Button text="-" press="onOpenDialogDelete"/>
                         </l:template>
                     </l:Column>
+
                 </l:columns>
             </l:Table>
         </content>

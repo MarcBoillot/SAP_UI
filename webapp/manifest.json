@@ -31,6 +31,7 @@
       "sap_belize"
     ]
   },
+
   "sap.ui5": {
     "_version": "1.1.0",
     "rootView": {
@@ -93,24 +94,7 @@
           "pattern": "",
           "name": "Master",
           "view": "Master"
-        },
-        {
-          "pattern": "AddOrder",
-          "name": "NewOrder",
-          "view": "NewOrder"
-        },
-        {
-          "pattern": "Item",
-          "name": "Item",
-          "view": "Item"
-        },
-        {
-          "pattern": "OrdersTable",
-          "name": "OrdersTable",
-          "view": "OrdersTable"
         }
-
-
       ]
     },
     "config":  {
@@ -119,7 +103,6 @@
         "files": [
           "View.view.xml",
           "Controller.controller.js",
-          "Menu.fragment.xml",
           "manifest.json"
         ]
       }
