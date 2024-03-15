@@ -46,16 +46,15 @@ sap.ui.define([
             let that = this
             await this.getBusinessPartner()
             await this.getOrders()
+            await this.getStockItems()
             await this.getItems()
             // /** Exemple d'une vue SQL **/
-            // const transferRequest = await Views.getTransferRequests()
-            // console.log("transferRequest ::", transferRequest)
+            const transferRequest = await Views.getTransferRequests()
+            console.log("transferRequest ::", transferRequest)
 
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
-            console.log(this._getModel("stocksModel").getData())
-
         },
 
 
@@ -128,10 +127,7 @@ sap.ui.define([
             this._setModel(orders.value, "ordersModel");
         },
 
-        getItems: async function () {
-            // const selectedRowModel = this._getModel("selectedRowModel")
-            // const selectedRow = selectedRowModel.getData()
-            // console.log("selectedRow ::", selectedRow)
+        getStockItems: async function () {
             try {
                 const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").top(15).get();
                 const stocks = items.value.map(item => {
@@ -146,10 +142,15 @@ sap.ui.define([
                 console.error("Error fetching items:", error);
             }
         },
+
+        getItems: async function () {
+            const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").top(15).get();
+            this._setModel(items.value, "itemsModel")
+        },
 // ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
 
 
-        onCancelAddItem: function () {
+        onCancelAddItem: async function () {
             this._byId("AddItemToOrder").close()
         },
 
@@ -192,40 +193,84 @@ sap.ui.define([
         },
 
         onShowItemsInOf: async function (oEvent) {
-            let that = this
-            selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
-            const docNum = selectedRow.DocNum
-            const docEntry = selectedRow.DocEntry
-            const oDialogName = this._byId("itemsDialog")
+            let that = this;
+            const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject();
+            const docNum = selectedRow.DocNum;
+            const docEntry = selectedRow.DocEntry;
+            const oDialogName = this._byId("itemsDialog");
+
             for (const line of selectedRow.DocumentLines) {
-                const itemDetails = await Models.Items().id(`'${line.ItemCode}'`).get()
-                console.log("itemDetails ::", itemDetails)
+                const itemDetails = await Models.Items().id(`'${line.ItemCode}'`).get();
+                console.log("details item : ", itemDetails);
+
                 if (itemDetails.ItemWarehouseInfoCollection.length > 0) {
-                    line.totalStock = 0
+                    line.totalStock = 0;
+                    const warehouseNames = [];
                     itemDetails.ItemWarehouseInfoCollection.forEach(whs => {
-                        console.log("whs.InStock ::", whs.InStock)
-                        line.totalStock += whs.InStock
+                        console.log("whs.InStock ::", whs.InStock);
+                        line.totalStock += whs.InStock;
+                        if (whs.InStock > 0) {
+                            warehouseNames.push(whs.WarehouseCode);
+                        }
                     })
+                    line.warehouseNames = warehouseNames.join(", ");
+                    console.log("nameOfWHS", line.warehouseNames)
                 }
-                console.log("line.totalStock ::", line.totalStock)
             }
-            console.log("selectedRow ::", selectedRow)
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.ItemsForOf",
                     controller: this
                 }).then(function (oDialog) {
-                    // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
                     that._setModel(selectedRow, "selectedRowModel");
-                    oDialog.setModel(new JSONModel({}), "table2")
-                    that.openDialog(oDialog)
+                    oDialog.setModel(new JSONModel({}), "table2");
+                    that.openDialog(oDialog);
                 });
             } else {
                 this._oDialogDetail.then(function (oDialog) {
                     oDialog.open();
-                })
+                });
             }
-            console.log("selectedRow : ", selectedRow)
+        },
+
+        onShowWarehouse: function (oEvent) {
+            let that = this;
+            const selectedRow = oEvent.getSource().getBindingContext("selectedRowModel").getObject();
+
+            let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
+
+            selectedRow.DocumentLines.forEach(line => {
+                let labelWarehouseName = new sap.m.Label({ text: "Magasin" });
+                let textName = new sap.m.Text({ text: line.warehouseNames });
+                let labelWarehouseStock = new sap.m.Label({ text: "Quantité" });
+                let textQty = new sap.m.Text({ text: line.totalStock });
+
+                let HboxName = new sap.m.HBox({
+                    items: [labelWarehouseName, textName],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HboxQty = new sap.m.HBox({
+                    items: [labelWarehouseStock, textQty],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                VBox.addItem(HboxName);
+                VBox.addItem(HboxQty);
+            });
+
+            // Créer le dialog avec le contenu VBox
+            let dialog = new sap.m.Dialog({
+                title: "WAREHOUSE",
+                content: [VBox],
+                endButton: new sap.m.Button({
+                    text: "Valider",
+                    press: () => {
+                        dialog.close();
+                    }
+                })
+            });
+            dialog.open();
         },
 
 
@@ -419,6 +464,9 @@ sap.ui.define([
                 }
             })
         },
+
+//-------------------------------------------------WAREHOUSE--------------------------------------------------//
+
 
 //-------------------------------------------------SCANNER--------------------------------------------------//
 

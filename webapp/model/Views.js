@@ -74,7 +74,7 @@ sap.ui.define([
         },
 
         getTransferRequests: async function () {
-            return this.formatTransferRequestData(await this.getView('OB1_GET_TRANSFER_REQUESTS_M4_B1SLQuery'))
+            return this.formatTransferRequestData(await this.getView('GetOrdersWithStock'))
         },
 
         formatTransferRequestData: function (data) {

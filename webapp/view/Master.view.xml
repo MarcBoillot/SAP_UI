@@ -62,7 +62,7 @@
                             <l:Column width="100px">
                                 <Label text="TotalPrice "/>
                                 <l:template>
-                                    <Text text="{ordersModel>TotalPrice}" wrapping="false"/>
+                                    <Text text="{ordersModel>TotalPrice} €" wrapping="false"/>
                                 </l:template>
                             </l:Column>
 
@@ -118,7 +118,7 @@
                                 <l:Column width="100px">
                                     <Label text="TotalPrice "/>
                                     <l:template>
-                                        <Text text="{ordersModel>TotalPrice}" wrapping="false"/>
+                                        <Text text="{ordersModel>TotalPrice} €" wrapping="false"/>
                                     </l:template>
                                 </l:Column>
 
@@ -135,6 +135,7 @@
                                         <Button text="Voir Produits" press="onShowItemsInOf"/>
                                     </l:template>
                                 </l:Column>
+
                             </l:columns>
                         </l:Table>
                     </IconTabFilter>

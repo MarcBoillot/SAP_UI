@@ -50,6 +50,13 @@
                         </l:template>
                     </l:Column>
 
+                    <l:Column width="150px">
+                        <Label text="Button"/>
+                        <l:template>
+                            <Button text="Voir les magasins" press="onShowWarehouse"/>
+                        </l:template>
+                    </l:Column>
+
                     <l:Column width="100px">
                         <Label text="Modify"/>
                         <l:template>
