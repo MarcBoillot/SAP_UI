@@ -17,6 +17,7 @@ sap.ui.define([
     "use strict"
     let Models
     let Views
+    let selectedRow
 
     return BaseController.extend("wwl.controller.Master", {
         Formatter: Formatter,
@@ -41,16 +42,8 @@ sap.ui.define([
 
 // ------------------------------------------------ROUTEMATCH------------------------------------------------ //
 
-        openDialog: function (oDialogName) {
-            this.oView.addDependent(oDialogName);
-            oDialogName.attachAfterClose(() => oDialogName.destroy())
-            oDialogName.getEndButton(() => oDialogName.close());
-            oDialogName.open();
-        },
-
-
         onRouteMatch: async function () {
-
+            let that = this
             await this.getBusinessPartner()
             await this.getOrders()
             await this.getItems()
@@ -61,11 +54,22 @@ sap.ui.define([
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
+            console.log(this._getModel("stocksModel").getData())
+
         },
 
-        onMasterView: function () {
-            this.getOwnerComponent().getRouter().navTo('Master')
-            console.log("vous etes sur la master View")
+
+        openDialog: function (oDialogName) {
+            this.oView.addDependent(oDialogName);
+            oDialogName.attachAfterClose(() => oDialogName.destroy())
+            oDialogName.getEndButton(() => oDialogName.close());
+            oDialogName.open();
+        },
+
+
+//-------------------------------------------------MATH IN QUANTITY---------------------------------------------//
+
+        calculateQuantityInStock: function (items) {
         },
 
 //-------------------------------------------------MATH IN PRICE---------------------------------------------//
@@ -121,15 +125,27 @@ sap.ui.define([
                 order.TotalPrice = this.calculateSumPrices(order.DocumentLines).toFixed(2);
                 order.TotalQuantity = this.calculateTotalQuantity(order.DocumentLines);
             });
-
             this._setModel(orders.value, "ordersModel");
         },
 
         getItems: async function () {
-            const item = await Models.Items().filter("Frozen ne 'tYES'").filter("BarCode ne 'null'").top(15).get()
-            this._setModel(item.value, "itemsModel")
+            // const selectedRowModel = this._getModel("selectedRowModel")
+            // const selectedRow = selectedRowModel.getData()
+            // console.log("selectedRow ::", selectedRow)
+            try {
+                const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").top(15).get();
+                const stocks = items.value.map(item => {
+                    if (item.ItemWarehouseInfoCollection.length > 0) {
+                        return item.ItemWarehouseInfoCollection.reduce((total, warehouse) => total + warehouse.InStock, 0);
+                    } else {
+                        return 0;
+                    }
+                });
+                this._setModel(stocks, "stocksModel");
+            } catch (error) {
+                console.error("Error fetching items:", error);
+            }
         },
-
 // ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
 
 
@@ -153,11 +169,9 @@ sap.ui.define([
 // ------------------------------------------------SHOW ITEMS IN ORDER------------------------------------------------ //
 
 
-        onShowItemsInOrder: function (oEvent) {
+        onShowItemsInOrder: async function (oEvent) {
             let that = this
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
-            const docNum = selectedRow.DocNum
-            const docEntry = selectedRow.DocEntry
             const oDialogName = this._byId("itemsDialog")
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
@@ -174,26 +188,75 @@ sap.ui.define([
                     oDialog.open();
                 })
             }
+
+        },
+
+        onShowItemsInOf: async function (oEvent) {
+            let that = this
+            selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
+            const docNum = selectedRow.DocNum
+            const docEntry = selectedRow.DocEntry
+            const oDialogName = this._byId("itemsDialog")
+            for (const line of selectedRow.DocumentLines) {
+                const itemDetails = await Models.Items().id(`'${line.ItemCode}'`).get()
+                console.log("itemDetails ::", itemDetails)
+                if (itemDetails.ItemWarehouseInfoCollection.length > 0) {
+                    line.totalStock = 0
+                    itemDetails.ItemWarehouseInfoCollection.forEach(whs => {
+                        console.log("whs.InStock ::", whs.InStock)
+                        line.totalStock += whs.InStock
+                    })
+                }
+                console.log("line.totalStock ::", line.totalStock)
+            }
+            console.log("selectedRow ::", selectedRow)
+            if (!oDialogName) {
+                this._oDialogDetail = Fragment.load({
+                    name: "wwl.view.ItemsForOf",
+                    controller: this
+                }).then(function (oDialog) {
+                    // je set le selectedRow pour pouvoir mettre a jour le model ordersModel et defini un nom de model pour pouvoir l'appeler dans la vue
+                    that._setModel(selectedRow, "selectedRowModel");
+                    oDialog.setModel(new JSONModel({}), "table2")
+                    that.openDialog(oDialog)
+                });
+            } else {
+                this._oDialogDetail.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
+            console.log("selectedRow : ", selectedRow)
         },
 
 
 // ------------------------------------------------ADD AN ITEM IN ORDER------------------------------------------------//
 
-
         onOpenDialogAddItem: function () {
-            Fragment.load({
-                name: "wwl.view.AddItemToOrder",
-                controller: this
-            }).then((oDialog) => {
-                oDialog._setModel({}, "newItemModel")
-                this.openDialog(oDialog);
-            })
+            let that = this
+            if (!this._byId("AddItemToOrder")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.AddItemToOrder",
+                    controller: this
+                }).then(function (oDialog) {
+
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(async () => {
+                        oDialog.close()
+                    });
+                    oDialog.setModel(new JSONModel({}), "newItemModel")
+                    oDialog.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
         },
 
         onAddItemInOrder: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-            console.log("dialog ::", dialog)
             const selectedItem = dialog.getModel("newItemModel").getData();
             console.log("selectedItem ::", selectedItem)
             const idOrder = this._getModel("selectedRowModel").getData().DocEntry;
@@ -232,16 +295,27 @@ sap.ui.define([
 // ------------------------------------------------ADD AN ORDER------------------------------------------------//
 
         onOpenDialogAddOrder: function () {
-            Fragment.load({
-                name: "wwl.view.CreateOrder",
-                controller: this,
-            }).then(function (oDialog) {
-                this.openDialog(oDialog)
-                oDialog._setModel({}, "newItemModel")
-                oDialog._setModel({}, "selectedBusinessPartnerModel")
-            });
+            let that = this
+            if (!this._byId("createOrderDialog")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.CreateOrder",
+                    controller: this
+                }).then(function (oDialog) {
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(async function () {
+                        oDialog.close()
+                    });
+                    oDialog.setModel(new JSONModel({}), "newItemModel")
+                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
+                    oDialog.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
         },
-
         onCreateNewOrder: async function (event) {
             let that = this
             const dialog = event.getSource().getParent();
@@ -329,34 +403,95 @@ sap.ui.define([
             dialog.close()
         },
 // ----------------------------------------------------CLOSE AN ORDER------------------------------------------//
-        onClosingOrder: function () {
-            let input = new sap.m.Input({})
-            let label = new sap.m.Label({text: "test"})
-            let Hbox = new sap.m.HBox({items: [label, input]})
+
+
+// ----------------------------------------------------MESSAGE OF QTY------------------------------------------//
+
+        onValidationOF: function () {
+            MessageBox.confirm("Voulez-vous clôturer cette OF", {
+                actions: ["YES", "NO"],
+                onClose: (sAction) => {
+                    if (sAction === "YES") {
+                        console.log("ok")
+                    } else {
+                        console.log("no")
+                    }
+                }
+            })
+        },
+
+//-------------------------------------------------SCANNER--------------------------------------------------//
+
+        onScan: function (event) {
+            let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"})
+            let inputBarCode = new sap.m.Input({placeholder: 1645298})
+            let labelQty = new sap.m.Label({text: "Entrez une qantité"})
+            let inputQty = new sap.m.Input({value: 1})
+            let HboxBarCode = new sap.m.HBox({
+                items: [labelBarCode, inputBarCode],
+                alignItems: "Center",
+            })
+            let HboxQty = new sap.m.HBox({
+                items: [labelQty, inputQty],
+                alignItems: "Center"
+            }).addStyleClass("sapUiSmallMargin")
             let dialog = new sap.m.Dialog({
-                title: "dialog",
-                content: [Hbox],
-                beginButton: new sap.m.Button({
+                title: "SCANNER",
+                content: [HboxBarCode, HboxQty],
+                endButton: new sap.m.Button({
+                    text: "Valider",
                     press: () => {
-                        console.log(input.getValue())
+                        console.log("valeur inputBarCode : ", inputBarCode.getValue())
+                        console.log("valeur inputQty : ", inputQty.getValue())
+                        let valueInputBarCode = inputBarCode.getValue()
+                        let valueInputQty = inputQty.getValue()
+                        this.verificatorExistAndQty(valueInputBarCode, valueInputQty, event);
                         dialog.close()
                     }
                 })
             })
-
             dialog.open()
+        },
 
-            MessageBox.confirm("êtes-vous sûr de?", {
-                actions: ["OUI", "NON", "PEUT-ETRE"],
-                onClose: (sAction) => {
-                    if (sAction === "OUI") {
-                        console.log("oui")
+        verificatorExistAndQty: function (inputBarCode, inputQty, event) {
+            // const selectedRow = event.getSource().getParent().getBindingContext("selectedRowModel");
+            console.log("selectedRow in verificator : ", selectedRow)
+            if (selectedRow) {
+                let BarCode = selectedRow.BarCode;
+                let Qty = selectedRow.Quantity;
+
+                if (BarCode && Qty) {
+                    if (BarCode.includes(inputBarCode)) {
+                        let index = BarCode.indexOf(inputBarCode);
+                        if (inputQty == Qty[index]) {
+                            console.log("OK");
+                        } else {
+                            console.log("KO");
+                            MessageBox.warning("La Quantité ne correspond pas", {
+                                actions: ["OK"],
+                                onClose: (sAction) => {
+                                    if (sAction === "OK") {
+                                        console.log("ok");
+                                    }
+                                }
+                            });
+                        }
                     } else {
-                        console.log("non")
+                        MessageBox.error("Aucun code bar correspondant", {
+                            actions: ["Fermer"],
+                            onClose: (sAction) => {
+                                if (sAction === "Fermer") {
+                                    console.log("Fermé");
+                                }
+                            }
+                        });
                     }
+                } else {
+                    console.error("Propriétés BarCode ou Quantity non définies dans l'objet de la commande sélectionnée.");
                 }
-            })
+            } else {
+                console.error("Aucun contexte de liaison trouvé pour l'élément parent de l'élément déclencheur de l'événement.");
+            }
         }
-
     })
 });

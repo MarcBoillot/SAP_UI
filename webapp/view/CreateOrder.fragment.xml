@@ -59,7 +59,7 @@
             </OverflowToolbar>
         </VBox>
         <buttons>
-            <Button design="Positive" text="Create this order" press="onCreateNewOrder"/>
+            <Button text="Create this order" press="onCreateNewOrder"/>
             <Button text="Close" press="onCloseCreateOrder"/>
         </buttons>
     </Dialog>

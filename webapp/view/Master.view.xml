@@ -132,7 +132,7 @@
                                 <l:Column width="150px">
                                     <Label text="Button"/>
                                     <l:template>
-                                        <Button text="Voir Produits" press="onShowItemsInOrder"/>
+                                        <Button text="Voir Produits" press="onShowItemsInOf"/>
                                     </l:template>
                                 </l:Column>
                             </l:columns>

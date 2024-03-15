@@ -23,13 +23,10 @@
             </Select>
 
         </HBox>
-<!--        <OverflowToolbar>-->
-<!--        <ToolbarSpacer/>-->
         <HBox alignItems="Center" class="sapUiSmallMargin">
         <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>
         <Input required="true" value="{newItemModel>/Quantity}" placeholder="Exemple : 45 "/>
         </HBox>
-<!--        </OverflowToolbar>-->
         <buttons>
             <Button text="CANCEL" press="onCancelAddItem"/>
             <Button text="PATCH_ORDER" press="onAddItemInOrder"/>
