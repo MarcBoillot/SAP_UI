@@ -44,10 +44,7 @@ sap.ui.define([
 
         onRouteMatch: async function () {
             let that = this
-            await this.getBusinessPartner()
-            await this.getOrders()
-            await this.getStockItems()
-            await this.getItems()
+
             // /** Exemple d'une vue SQL **/
             const transferRequest = await Views.getTransferRequests()
             console.log("transferRequest ::", transferRequest)
@@ -55,6 +52,10 @@ sap.ui.define([
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
+            // await this.getBusinessPartner()
+            // await this.getOrders()
+            // await this.getStockItems()
+            // await this.getItems()
         },
 
 
@@ -236,7 +237,7 @@ sap.ui.define([
         onShowWarehouse: function (oEvent) {
             let that = this;
             const selectedRow = oEvent.getSource().getBindingContext("selectedRowModel").getObject();
-
+            console.log( selectedRow);
             let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
 
             selectedRow.DocumentLines.forEach(line => {

@@ -64,7 +64,8 @@ sap.ui.define([
             return $.ajax({
                 method: 'get',
                 // url: `${appContext.url.SL}view.svc/${viewName}${qry}`,
-                url: appContext.url.SL + "view.svc/" + viewName + qry,
+                // url: appContext.url.SL + "view.svc/" + viewName + qry,
+                url: appContext.url.SL + "service.xsodata/" + viewName + qry,
                 xhrFields: {withCredentials: true}
             }).fail(error => {
                 MessageBox.error(that.getError(error))
@@ -74,37 +75,38 @@ sap.ui.define([
         },
 
         getTransferRequests: async function () {
-            return this.formatTransferRequestData(await this.getView('GetOrdersWithStock'))
+            // return this.formatTransferRequestData(await this.getView('OB1_GET_TRANSFER_REQUESTS_M4_B1SLQuery'))
+            return await this.getView('GetOrdersWithStock');
         },
 
-        formatTransferRequestData: function (data) {
-            return Object.values(data.value.reduce((r, a) => {
-                r[a.DocNum] = r[a.DocNum] || []
-                r[a.DocNum].push(a)
-                return r
-            }, {}))
-                .map(transferRequest => {
-                    const {
-                        DocEntry,
-                        DocNum,
-                        DocDueDate,
-                        U_OB1_PREP_ENCOURS: InPreparation,
-                        U_OB1_OPERATEUR,
-                        pendingRequestBinLoc
-                    } = transferRequest[0]
-
-                    return {
-                        DocEntry,
-                        DocNum,
-                        DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
-                        InPreparation,
-                        StockTransferLines: transferRequest,
-                        U_OB1_OPERATEUR,
-                        pendingRequestBinLoc,
-                        NbLines: transferRequest.filter(item => item.InvntItem === 'Y').length
-                    }
-                })
-        },
+        // formatTransferRequestData: function (data) {
+        //     return Object.values(data.value.reduce((r, a) => {
+        //         r[a.DocNum] = r[a.DocNum] || []
+        //         r[a.DocNum].push(a)
+        //         return r
+        //     }, {}))
+        //         .map(transferRequest => {
+        //             const {
+        //                 DocEntry,
+        //                 DocNum,
+        //                 DocDueDate,
+        //                 U_OB1_PREP_ENCOURS: InPreparation,
+        //                 U_OB1_OPERATEUR,
+        //                 pendingRequestBinLoc
+        //             } = transferRequest[0]
+        //
+        //             return {
+        //                 DocEntry,
+        //                 DocNum,
+        //                 DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
+        //                 InPreparation,
+        //                 StockTransferLines: transferRequest,
+        //                 U_OB1_OPERATEUR,
+        //                 pendingRequestBinLoc,
+        //                 NbLines: transferRequest.filter(item => item.InvntItem === 'Y').length
+        //             }
+        //         })
+        // },
 
         getError: function (e) {
             if (e.stack) {
