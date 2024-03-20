@@ -13,3 +13,10 @@ https://
  "UserName":"",
  "Password":""
 }
+
+## Second possibility for connection to database by ViewSQL
+
+Make in Model directory a file which will name Views.js 
+* implement your logic for take only the datas you need 
+
+In component.js in init function put your url link to service layer and initialize the router
