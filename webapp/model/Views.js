@@ -49,6 +49,8 @@ sap.ui.define([
             return this
         },
 
+
+
         _resetQuery: function () {
             this.query = ""
         },
@@ -65,7 +67,7 @@ sap.ui.define([
                 method: 'get',
                 // url: `${appContext.url.SL}view.svc/${viewName}${qry}`,
                 // url: appContext.url.SL + "view.svc/" + viewName + qry,
-                url: appContext.url.SL + "service.xsodata/" + viewName + qry,
+                url: appContext.url.SL + "service.xsodata/" + viewName + qry + "?$format=json",
                 xhrFields: {withCredentials: true}
             }).fail(error => {
                 MessageBox.error(that.getError(error))
@@ -74,36 +76,163 @@ sap.ui.define([
             })
         },
 
-        getTransferRequests: async function () {
+        getOrdersWithStock: async function () {
             // return this.formatTransferRequestData(await this.getView('OB1_GET_TRANSFER_REQUESTS_M4_B1SLQuery'))
-            return await this.getView('GetOrdersWithStock');
+            // return await this.getView('GetOrdersWithStock');
+            return this.formatOrders(await this.getView('GetOrdersWithStock'))
         },
 
+        noFormatOrders: function (data) {
+            if (!data || !data.d.results || data.d.results.length === 0) {
+                return [];
+            }
+
+            return data.d.results.map(result => {
+                return {
+                    DocDueDate_formatted: result.DocDueDate_formatted,
+                    DocEntry: result.DocEntry,
+                    CardCode: result.CardCode,
+                    CardName: result.CardName,
+                    ItemCode: result.ItemCode,
+                    Dscription: result.Dscription,
+                    OnHand: result.OnHand,
+                    WhsName: result.WhsName,
+                    WhsCode: result.WhsCode,
+                    Price: result.Price,
+                    Quantity: result.Quantity,
+                    totalStock: result.totalStock,
+                    totalPriceInOrder: result.totalPriceInOrder,
+                    totalPriceByItem: result.totalPriceByItem,
+                };
+            });
+        },
+
+        formatOrders: function (data) {
+            if (!data || !data.d.results || data.d.results.length === 0) {
+                return [];
+            }
+
+            const groupedData = [];
+            data.d.results.forEach(line => {
+                const docEntry = line.DocEntry;
+                if (!groupedData[docEntry]) {
+                    groupedData[docEntry] = [];
+                    groupedData[docEntry].DocumentLines = []
+                    groupedData[docEntry].CardName = line.CardName
+                    groupedData[docEntry].CardCode = line.CardCode
+                    groupedData[docEntry].DocDueDate_formatted = line.DocDueDate_formatted
+                    groupedData[docEntry].totalPriceInOrder = line.totalPriceInOrder
+                    groupedData[docEntry].DocEntry = line.DocEntry
+                    groupedData[docEntry].Address = line.Address
+                    groupedData[docEntry].CodeBars = line.CodeBars
+
+                }
+                // groupedData[docEntry].push(line);
+                groupedData[docEntry].DocumentLines.push({
+                    DocEntry:line.DocEntry,
+                    Dscription: line.Dscription,
+                    ItemCode: line.ItemCode,
+                    CodeBars: line.CodeBars,
+                    OnHand: line.OnHand,
+                    Price: line.Price,
+                    Quantity: line.Quantity,
+                    WhsCode: line.WhsCode,
+                    WhsName: line.WhsName,
+                    totalStock: line.totalStock,
+                    totalPriceByItem: line.totalPriceByItem,
+                    totalPriceInOrder: line.totalPriceInOrder
+                });
+            });
+            return groupedData
+
+            // return Object.values(groupedData).map(transferRequest => {
+            //     const {
+            //         CardCode,
+            //         CardName,
+            //         DocDueDate,
+            //         DocEntry,
+            //         Dscription,
+            //         ItemCode,
+            //         OnHand,
+            //         Price,
+            //         Quantity,
+            //         WhsCode,
+            //         WhsName,
+            //         totalStock,
+            //         totalPriceByItem,
+            //         totalPriceInOrder,
+            //     } = transferRequest[0];
+            //
+            //     return {
+            //         CardCode,
+            //         CardName,
+            //         DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
+            //         DocEntry,
+            //         Dscription,
+            //         ItemCode,
+            //         OnHand,
+            //         Price,
+            //         Quantity,
+            //         WhsName,
+            //         WhsCode,
+            //         totalStock,
+            //         totalPriceByItem,
+            //         totalPriceInOrder,
+            //     };
+            // });
+        },
+
+
         // formatTransferRequestData: function (data) {
-        //     return Object.values(data.value.reduce((r, a) => {
-        //         r[a.DocNum] = r[a.DocNum] || []
-        //         r[a.DocNum].push(a)
-        //         return r
+        //     return Object.values(data.value.reduce((accumulator, currentvalue) => {
+        //         accumulator[currentvalue.DocEntry] = accumulator[currentvalue.DocEntry] || []
+        //         accumulator[currentvalue.DocEntry].push(currentvalue)
+        //         return accumulator
         //     }, {}))
         //         .map(transferRequest => {
         //             const {
-        //                 DocEntry,
-        //                 DocNum,
         //                 DocDueDate,
-        //                 U_OB1_PREP_ENCOURS: InPreparation,
-        //                 U_OB1_OPERATEUR,
-        //                 pendingRequestBinLoc
+        //                 DocEntry,
+        //                 CardCode,
+        //                 cardName,
+        //                 ItemCode,
+        //                 Dscription,
+        //                 OnHand,
+        //                 WhsName,
+        //                 WhsCode,
+        //                 Price,
+        //                 Quantity,
+        //                 totalStock,
+        //                 totalPriceInOrder,
+        //                 totalPriceByItem,
+        //
+        //                 // U_OB1_PREP_ENCOURS: InPreparation,
+        //                 // U_OB1_OPERATEUR,
+        //                 // pendingRequestBinLoc
         //             } = transferRequest[0]
         //
         //             return {
-        //                 DocEntry,
-        //                 DocNum,
+        //
         //                 DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
-        //                 InPreparation,
-        //                 StockTransferLines: transferRequest,
-        //                 U_OB1_OPERATEUR,
-        //                 pendingRequestBinLoc,
-        //                 NbLines: transferRequest.filter(item => item.InvntItem === 'Y').length
+        //                 DocEntry,
+        //                 CardCode,
+        //                 cardName,
+        //                 ItemCode,
+        //                 Dscription,
+        //                 OnHand,
+        //                 WhsName,
+        //                 WhsCode,
+        //                 Price,
+        //                 Quantity,
+        //                 totalStock,
+        //                 totalPriceInOrder,
+        //                 totalPriceByItem,
+        //                 // DocNum,
+        //                 // InPreparation,
+        //                 // StockTransferLines: transferRequest,
+        //                 // U_OB1_OPERATEUR,
+        //                 // pendingRequestBinLoc,
+        //                 // NbLines: transferRequest.filter(item => item.InvntItem === 'Y').length
         //             }
         //         })
         // },

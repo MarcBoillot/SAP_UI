@@ -44,7 +44,7 @@
                             </l:Column>
 
                             <l:Column width="250px">
-                                <Label text="Orders"/>
+                                <Label text="Clients"/>
                                 <l:template>
                                     <Text text="{ordersModel>CardName} ({ordersModel>CardCode})"
                                           wrapping="false"/>
@@ -54,7 +54,7 @@
                             <l:Column width="100px">
                                 <Label text="Date"/>
                                 <l:template>
-                                    <Text text="{path : 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}"
+                                    <Text text="{ordersModel>DocDueDate_formatted}"
                                           wrapping="false"/>
                                 </l:template>
                             </l:Column>
@@ -62,7 +62,7 @@
                             <l:Column width="100px">
                                 <Label text="TotalPrice "/>
                                 <l:template>
-                                    <Text text="{ordersModel>TotalPrice} €" wrapping="false"/>
+                                    <Text text="{ordersModel>totalPriceInOrder} €" wrapping="false"/>
                                 </l:template>
                             </l:Column>
 
@@ -110,7 +110,7 @@
                                 <l:Column width="100px">
                                     <Label text="Date"/>
                                     <l:template>
-                                        <Text text="{path : 'ordersModel>DocDate', formatter : '.Formatter.formatDate'}"
+                                        <Text text="{ordersModel>DocDueDate_formatted}"
                                               wrapping="false"/>
                                     </l:template>
                                 </l:Column>
@@ -118,7 +118,7 @@
                                 <l:Column width="100px">
                                     <Label text="TotalPrice "/>
                                     <l:template>
-                                        <Text text="{ordersModel>TotalPrice} €" wrapping="false"/>
+                                        <Text text="{ordersModel>totalPriceInOrder} €" wrapping="false"/>
                                     </l:template>
                                 </l:Column>
 
@@ -132,7 +132,7 @@
                                 <l:Column width="150px">
                                     <Label text="Button"/>
                                     <l:template>
-                                        <Button text="Voir Produits" press="onShowItemsInOf"/>
+                                        <Button text="Voir Produits" press="onShowItemsInOfSQL"/>
                                     </l:template>
                                 </l:Column>
 

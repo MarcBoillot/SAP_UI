@@ -39,15 +39,13 @@ sap.ui.define([
 
         },
 
-
 // ------------------------------------------------ROUTEMATCH------------------------------------------------ //
 
         onRouteMatch: async function () {
             let that = this
-
             // /** Exemple d'une vue SQL **/
-            const transferRequest = await Views.getTransferRequests()
-            console.log("transferRequest ::", transferRequest)
+            const getRequest = await Views.getOrdersWithStock()
+            console.log("transferRequest ::", getRequest)
 
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
@@ -56,8 +54,61 @@ sap.ui.define([
             // await this.getOrders()
             // await this.getStockItems()
             // await this.getItems()
+            await this.getOrdersData()
+            await this.getItemsData()
         },
 
+//--------------------------------------------------ViewSQL-----------------------------------------------------//
+
+        getOrdersData: async function () {
+            const orders = await Views.getOrdersWithStock();
+            const formatOrders = [];
+
+            Object.values(orders).forEach(order => {
+                const formatOrder = {
+                    DocDueDate_formatted: order.DocDueDate_formatted,
+                    DocEntry: order.DocEntry,
+                    CardCode: order.CardCode,
+                    CardName: order.CardName,
+                    totalPriceInOrder: order.totalPriceInOrder,
+                    Address: order.Address
+                };
+                formatOrders.push(formatOrder);
+            });
+            this._setModel(formatOrders, "ordersModel");
+        },
+
+        getItemsData: async function () {
+            const items = await Views.getOrdersWithStock();
+            const formatItems = [];
+
+            Object.values(items).forEach(item => {
+                item.DocumentLines.forEach(line => {
+                    const formatItem = {
+                        DocEntry: line.DocEntry,
+                        Quantity: line.Quantity,
+                        totalPriceByItem: line.totalPriceByItem,
+                        Price: line.Price,
+                        ItemCode: line.ItemCode,
+                        Dscription: line.Dscription,
+                        OnHand: line.OnHand,
+                        WhsCode: line.WhsCode,
+                        WhsName: line.WhsName,
+                        totalStock: line.totalStock,
+                        CodeBars: line.CodeBars
+                    };
+                    formatItems.push(formatItem);
+                });
+            });
+
+            console.log("formatted items :", formatItems);
+            return formatItems; // Ensure you return the formatted items
+        },
+
+
+
+
+//-------------------------------------------------OPENDIALOG-------------------------------------------------//
 
         openDialog: function (oDialogName) {
             this.oView.addDependent(oDialogName);
@@ -66,18 +117,44 @@ sap.ui.define([
             oDialogName.open();
         },
 
+        onShowItemsInOfSQL: async function (oEvent) {
+            let that = this;
+            const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject();
+            const docEntry = selectedRow.DocEntry;
+            const oDialogName = this._byId("itemsDialog");
+            console.log("selected row :: ", selectedRow);
+            console.log("docEntry :: ", docEntry);
 
-//-------------------------------------------------MATH IN QUANTITY---------------------------------------------//
+            const items = await this.getItemsData();
+            const itemsFilteredByDocEntry = items.filter(item => item.DocEntry === docEntry);
+            console.log("itemsFilteredByDocEntry :: ", itemsFilteredByDocEntry);
 
-        calculateQuantityInStock: function (items) {
+            if (!oDialogName) {
+                this._oDialogDetail = Fragment.load({
+                    name: "wwl.view.ItemsForOf",
+                    controller: this
+                }).then(function (oDialog) {
+                    that._setModel(itemsFilteredByDocEntry, "itemsModel"); // Set filtered items model
+                    that.openDialog(oDialog);
+                });
+            } else {
+                this._oDialogDetail.then(function (oDialog) {
+                    that._setModel(itemsFilteredByDocEntry, "itemsModel"); // Set filtered items model
+                    oDialog.open();
+                });
+            }
         },
+
+
+
+
 
 //-------------------------------------------------MATH IN PRICE---------------------------------------------//
 
         transformDocumentLines: function (documentLines) {
             documentLines.forEach(item => {
                 if (typeof item === 'object') {
-                    item.totalPriceForItem = (item.PriceAfterVAT * item.Quantity).toFixed(2);
+                    item.totalPriceForItem = (item.Price * item.Quantity).toFixed(2);
                 }
             });
         },
@@ -86,7 +163,7 @@ sap.ui.define([
             const isObject = obj => typeof obj === 'object';
             return documentLines.reduce((total, currentLine) => {
                 if (isObject(currentLine)) {
-                    const totalPriceForItem = currentLine.PriceAfterVAT * currentLine.Quantity;
+                    const totalPriceForItem = currentLine.Price * currentLine.Quantity;
                     return total + totalPriceForItem;
                 }
                 return total;
@@ -118,7 +195,7 @@ sap.ui.define([
         },
 
         getOrders: async function () {
-            const orders = await Models.Orders().filter("DocumentStatus eq 'bost_Open'").orderby("DocNum desc").top(20).get();
+            const orders = await Models.Orders().orderby("DocEntry desc").top(20).get();
 
             orders.value.forEach(order => {
                 this.transformDocumentLines(order.DocumentLines);
@@ -175,6 +252,8 @@ sap.ui.define([
             let that = this
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject()
             const oDialogName = this._byId("itemsDialog")
+            console.log("selectedRow ::",selectedRow)
+            console.log("oDialogName ::",oDialogName)
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.Items",
@@ -196,7 +275,6 @@ sap.ui.define([
         onShowItemsInOf: async function (oEvent) {
             let that = this;
             const selectedRow = oEvent.getSource().getBindingContext("ordersModel").getObject();
-            const docNum = selectedRow.DocNum;
             const docEntry = selectedRow.DocEntry;
             const oDialogName = this._byId("itemsDialog");
 
@@ -237,14 +315,14 @@ sap.ui.define([
         onShowWarehouse: function (oEvent) {
             let that = this;
             const selectedRow = oEvent.getSource().getBindingContext("selectedRowModel").getObject();
-            console.log( selectedRow);
+            console.log(selectedRow);
             let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
 
             selectedRow.DocumentLines.forEach(line => {
-                let labelWarehouseName = new sap.m.Label({ text: "Magasin" });
-                let textName = new sap.m.Text({ text: line.warehouseNames });
-                let labelWarehouseStock = new sap.m.Label({ text: "Quantité" });
-                let textQty = new sap.m.Text({ text: line.totalStock });
+                let labelWarehouseName = new sap.m.Label({text: "Magasin"});
+                let textName = new sap.m.Text({text: line.warehouseNames});
+                let labelWarehouseStock = new sap.m.Label({text: "Quantité"});
+                let textQty = new sap.m.Text({text: line.totalStock});
 
                 let HboxName = new sap.m.HBox({
                     items: [labelWarehouseName, textName],

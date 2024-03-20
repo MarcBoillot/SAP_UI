@@ -7,7 +7,7 @@
         id="ItemsFragment">
     <Dialog contentWidth="1200px"
             id="itemsDialog"
-            title="{= 'DocEntry: ' + ${selectedRowModel>/DocEntry} + ' ' + 'DocNum: ' + ${selectedRowModel>/DocNum}}"
+            title="{= 'DocEntry: ' + ${selectedRowModel>/DocEntry} + ' ' + 'DocNum: ' + ${selectedRowModel>/CardName}}"
     >
         <content>
             <OverflowToolbar style="Clear">
@@ -16,14 +16,14 @@
                 <Button text="Close this order" press="onClosingOrder"/>
             </OverflowToolbar>
             <l:Table
-                    rows="{path:'selectedRowModel>/DocumentLines', parameters: {arrayNames:['DocumentLines']}}"
+                    rows="{path:'itemsModel>/', parameters: {arrayNames:['DocumentLines']}}"
             >
                 <l:columns>
 
                     <l:Column width="100px">
                         <Label text="Code Bar"/>
                         <l:template>
-                            <Text text="{selectedRowModel>BarCode}"
+                            <Text text="{itemsModel>CodeBars}"
                                   wrapping="false"/>
                         </l:template>
                     </l:Column>
@@ -31,7 +31,7 @@
                     <l:Column width="500px">
                         <Label text="Name"/>
                         <l:template>
-                            <Text text="{selectedRowModel>ItemDescription}"
+                            <Text text="{itemsModel>Dscription}"
                                   wrapping="false"/>
                         </l:template>
                     </l:Column>
@@ -39,14 +39,28 @@
                     <l:Column width="50px">
                         <Label text="Qty"/>
                         <l:template>
-                            <Text text="{selectedRowModel>Quantity}" wrapping="false"/>
+                            <Text text="{itemsModel>Quantity}" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
                     <l:Column width="100px">
                         <Label text="Qty InStock"/>
                         <l:template>
-                            <Text text="{selectedRowModel>totalStock}" wrapping="false"/>
+                            <Text text="{itemsModel>totalStock}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+
+                    <l:Column width="100px">
+                        <Label text="Price/u"/>
+                        <l:template>
+                            <Text text="{itemsModel>Price} €" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+
+                    <l:Column width="100px">
+                        <Label text="total price"/>
+                        <l:template>
+                            <Text text="{itemsModel>totalPriceByItem} €" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
