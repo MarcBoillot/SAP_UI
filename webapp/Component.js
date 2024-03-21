@@ -27,8 +27,8 @@ sap.ui.define([
                 authRequired: true,
                 dbCompany: 'OB3_TEST',
                 url: {
-                    SL: 'https://sap-hana.work-well.fr:4300/MB_Views_TEST/',
-                    // SL: 'https://sap-hana.work-well.fr:50000/b1s/v1/',
+                   XSODATA : 'https://sap-hana.work-well.fr:4300/MB_Views_TEST/',
+                    SL: 'https://sap-hana.work-well.fr:50000/b1s/v1/',
                     PrintAPI: 'https://sap.dpia.fr:2660/',
                 },
             };

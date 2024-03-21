@@ -8,20 +8,17 @@
             contentWidth="1000px"
             title="ADD A ITEM">
         <HBox alignItems="Center" class="sapUiSmallMargin">
-            <Label text="Select an ItemName" class="sapUiSmallMarginEnd"/>
-            <Select
-                    id="selectedItem"
-                    width="500px"
-                    forceSelection="false"
-                    selectedKey="{newItemModel>/ItemCode}"
-                    items="{
-						path: 'itemsModel>/',
-						sorter: { path: 'ItemName' }
-					}"
-            >
-                <core:Item key="{itemsModel>ItemCode}" text="{itemsModel>ItemName}"/>
-            </Select>
-
+            <Label text="Product" labelFor="productInput" class="sapUiSmallMarginEnd" />
+            <Input
+                    id="productInput"
+                    placeholder="Enter product"
+                    showSuggestion="true"
+                    suggest=".onSuggest"
+                    suggestionItems="{itemsListModel>/}" >
+                <suggestionItems>
+                    <core:Item text="{itemsListModel>ItemName}" />
+                </suggestionItems>
+            </Input>
         </HBox>
         <HBox alignItems="Center" class="sapUiSmallMargin">
         <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>
@@ -29,7 +26,7 @@
         </HBox>
         <buttons>
             <Button text="CANCEL" press="onCancelAddItem"/>
-            <Button text="PATCH_ORDER" press="onAddItemInOrder"/>
+            <Button text="PATCH_ORDER" press="onAddItemInOrderSQL"/>
         </buttons>
 
     </Dialog>

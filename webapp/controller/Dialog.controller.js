@@ -32,6 +32,7 @@ sap.ui.define([
                 Currency: "",
                 Quantity: ""
             });
+
             this.getView().setModel(oModel);
             this.getOwnerComponent().getRouter()
                 .getRoute("Master")
@@ -44,8 +45,10 @@ sap.ui.define([
         onRouteMatch: async function () {
             let that = this
             // /** Exemple d'une vue SQL **/
-            const getRequest = await Views.getOrdersWithStock()
-            console.log("transferRequest ::", getRequest)
+            const getRequestForOrders = await Views.getOrdersWithStock()
+            const getRequestForItems = await Views.getItems()
+            console.log("transferRequest ::", getRequestForOrders)
+            console.log("getRequestForItems ::", getRequestForItems)
 
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
@@ -56,6 +59,7 @@ sap.ui.define([
             // await this.getItems()
             await this.getOrdersData()
             await this.getItemsData()
+            await this.getItemsList()
         },
 
 //--------------------------------------------------ViewSQL-----------------------------------------------------//
@@ -78,6 +82,20 @@ sap.ui.define([
             this._setModel(formatOrders, "ordersModel");
         },
 
+        getItemsList: async function (){
+            const items = await Views.getItems()
+            const formatItems=[]
+            Object.values(items).forEach(item=>{
+                const formatItem = {
+                    ItemCode:item.ItemCode,
+                    ItemName:item.ItemName,
+                    CodeBars: item.CodeBars
+                };
+                formatItems.push(formatItem);
+            });
+            this._setModel(formatItems,'itemsListModel')
+        },
+
         getItemsData: async function () {
             const items = await Views.getOrdersWithStock();
             const formatItems = [];
@@ -95,7 +113,8 @@ sap.ui.define([
                         WhsCode: line.WhsCode,
                         WhsName: line.WhsName,
                         totalStock: line.totalStock,
-                        CodeBars: line.CodeBars
+                        CodeBars: line.CodeBars,
+                        LineNum: line.LineNum
                     };
                     formatItems.push(formatItem);
                 });
@@ -108,7 +127,7 @@ sap.ui.define([
 
 
 
-//-------------------------------------------------OPENDIALOG-------------------------------------------------//
+//-------------------------------------------------OPENDIALOGSQL-------------------------------------------------//
 
         openDialog: function (oDialogName) {
             this.oView.addDependent(oDialogName);
@@ -137,14 +156,131 @@ sap.ui.define([
                     that._setModel(itemsFilteredByDocEntry, "itemsModel"); // Set filtered items model
                     that.openDialog(oDialog);
                 });
-            } else {
-                this._oDialogDetail.then(function (oDialog) {
-                    that._setModel(itemsFilteredByDocEntry, "itemsModel"); // Set filtered items model
-                    oDialog.open();
-                });
             }
         },
 
+        onOpenDialogAddItemSQL: function () {
+            let that = this
+            if (!this._byId("AddItemToOrder")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.AddItemToOrder",
+                    controller: this
+                }).then(function (oDialog) {
+
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(async () => {
+                        oDialog.close()
+                    });
+                    oDialog.setModel(new JSONModel({}), "newItemModel")
+                    oDialog.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
+        },
+
+        onAddItemInOrderSQL: async function (event) {
+            let that = this;
+            const dialog = event.getSource().getParent();
+            const selectedItem = dialog.getModel("newItemModel").getData();
+            console.log("selectedItem ::", selectedItem)
+            const idOrder = this._getModel("ordersModel").getData().DocEntry;
+            console.log("id order :: ", idOrder)
+            const items = this._getModel("itemsModel").getData();
+            console.log("items :: ", items)
+
+            if (Array.isArray(items)) {
+                //pour ajouter et pas ecraser la ligne deja existante
+                const lineNumArray = items.map(docLine => docLine.LineNum);
+                const highestLineNum = Math.max(...lineNumArray);
+                console.log("highest line num :: ", highestLineNum)
+                // j'ajoute dans le model a la ligne suivante l'item selected et sa quantity
+                const dataToPatch = {
+                    DocumentLines: [
+                        {
+                            LineNum: highestLineNum + 1,
+                            Quantity: selectedItem.Quantity,
+                            Dscription: selectedItem.Dscription,
+                        }
+                    ]
+                };
+                //je patch les nouvelles données
+                await Models.Orders().patch(dataToPatch, idOrder).then(function () {
+
+                    console.log("PATCH successful");
+                }).catch(function (error) {
+                    console.error("PATCH failed", error);
+                });
+                let updatedOrder = await Models.Orders().id(idOrder).get();
+                console.log("updatedOrder :: ", updatedOrder)
+                this._setModel(updatedOrder, 'selectedRowModel');
+                await that.getOrders()
+                dialog.close();
+            } else {
+                console.error("DocumentLines is not an array");
+            }
+        },
+
+        onOpenDialogDeleteSQL: function (oEvent) {
+            let that = this
+            const selectedItem = oEvent.getSource().getBindingContext("selectedRowModel").getObject();
+            const ItemCode = selectedItem.ItemCode;
+            const ItemDescription = selectedItem.Dscription;
+            const LineNum = selectedItem.LineNum
+            const Quantity = selectedItem.Quantity
+            if (!this._byId("deleteItem")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.DeleteValidation",
+                    controller: this
+
+                }).then(function (oDialog) {
+
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(function () {
+                        oDialog.close()
+                    });
+                    that._setModel({
+                        selectedItem: selectedItem,
+                        ItemCode: selectedItem.ItemCode,
+                        ItemDescription: selectedItem.Dscription,
+                        LineNum: selectedItem.LineNum + 1,
+                        Quantity: selectedItem.Quantity
+                    }, "selectedItemForDeleteModel");
+
+                    oDialog.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
+        },
+        onDeleteItemSQL: async function (event) {
+            let that = this;
+            const dialog = event.getSource().getParent();
+            const orderModelData = this._getModel("selectedItemForDeleteModel").getData();
+            const selectedItem = orderModelData.selectedItem;
+            const idOrder = orderModelData.selectedItem.DocEntry;
+            const allItemsInOrder = this._getModel("selectedRowModel").getData();
+            const items = allItemsInOrder.DocumentLines;
+            // filter methode pour tableau
+            const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
+            // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
+            await Models.Orders().patch({DocumentLines: updatedItems}, idOrder, true)
+                .then(() => {
+                    console.log("Item deleted successfully!");
+                }).catch((error) => {
+                    console.error("Error deleting item:", error);
+                });
+            //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
+            let updatedOrder = await Models.Orders().id(idOrder).get();
+            this._setModel(updatedOrder, 'selectedRowModel');
+            dialog.close()
+        },
 
 
 
@@ -179,7 +315,7 @@ sap.ui.define([
 
         onSelectChange: function (event) {
             const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
-            this._getModel("newItemModel").getData().ItemCode = selectedItem.ItemCode
+            this._getModel("itemsListModel").getData().ItemCode = selectedItem.ItemCode
         },
 
         onSelectChangeBusinessPartner: function (event) {
@@ -581,14 +717,14 @@ sap.ui.define([
         },
 
         verificatorExistAndQty: function (inputBarCode, inputQty, event) {
-            // const selectedRow = event.getSource().getParent().getBindingContext("selectedRowModel");
+            //const selectedRow = event.getSource().getParent().getBindingContext("selectedRowModel");
             console.log("selectedRow in verificator : ", selectedRow)
             if (selectedRow) {
-                let BarCode = selectedRow.BarCode;
+                let CodeBars = selectedRow.CodeBars;
                 let Qty = selectedRow.Quantity;
 
-                if (BarCode && Qty) {
-                    if (BarCode.includes(inputBarCode)) {
+                if (CodeBars && Qty) {
+                    if (CodeBars.includes(inputBarCode)) {
                         let index = BarCode.indexOf(inputBarCode);
                         if (inputQty == Qty[index]) {
                             console.log("OK");

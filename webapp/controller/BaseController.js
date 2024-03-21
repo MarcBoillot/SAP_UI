@@ -121,6 +121,7 @@ sap.ui.define([
             return sap.ui.getCore().byId(name) ? sap.ui.getCore().byId(name) : this.getView().byId(name)
         },
 
+
         _getModel: function (name) {
             return this.getView().getModel(name);
         },
@@ -130,5 +131,6 @@ sap.ui.define([
             if (sizeLimit) jsonModel.setSizeLimit(sizeLimit);
             return this.getView().setModel(jsonModel, modelName)
         },
+
     });
 });

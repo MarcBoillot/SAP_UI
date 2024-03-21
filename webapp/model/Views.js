@@ -55,6 +55,7 @@ sap.ui.define([
             this.query = ""
         },
 
+
         getView: function (viewName) {
             let that = this
             that.busyDialog.setText("Requête en cours...")
@@ -65,9 +66,9 @@ sap.ui.define([
 
             return $.ajax({
                 method: 'get',
-                // url: `${appContext.url.SL}view.svc/${viewName}${qry}`,
+                //.svc pour service reservé aux client server sql
                 // url: appContext.url.SL + "view.svc/" + viewName + qry,
-                url: appContext.url.SL + "service.xsodata/" + viewName + qry + "?$format=json",
+                url: appContext.url.XSODATA + "service.xsodata/" + viewName + qry + "?$format=json",
                 xhrFields: {withCredentials: true}
             }).fail(error => {
                 MessageBox.error(that.getError(error))
@@ -80,6 +81,20 @@ sap.ui.define([
             // return this.formatTransferRequestData(await this.getView('OB1_GET_TRANSFER_REQUESTS_M4_B1SLQuery'))
             // return await this.getView('GetOrdersWithStock');
             return this.formatOrders(await this.getView('GetOrdersWithStock'))
+        },
+
+        getItems: async function (){
+            return this.noFormatItems(await this.getView('GetItems'))
+        },
+
+        noFormatItems: function (data){
+            return data.d.results.map(result =>{
+                return {
+                    ItemCode: result.ItemCode,
+                    ItemName: result.ItemName,
+                    CodeBars: result.CodeBars,
+                }
+            })
         },
 
         noFormatOrders: function (data) {
@@ -140,7 +155,8 @@ sap.ui.define([
                     WhsName: line.WhsName,
                     totalStock: line.totalStock,
                     totalPriceByItem: line.totalPriceByItem,
-                    totalPriceInOrder: line.totalPriceInOrder
+                    totalPriceInOrder: line.totalPriceInOrder,
+                    LineNum: line.LineNum
                 });
             });
             return groupedData

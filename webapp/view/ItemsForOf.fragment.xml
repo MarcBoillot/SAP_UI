@@ -11,7 +11,7 @@
     >
         <content>
             <OverflowToolbar style="Clear">
-                <Button text="Add Item" press="onOpenDialogAddItem"/>
+                <Button text="Add Item" press="onOpenDialogAddItemSQL"/>
                 <ToolbarSpacer/>
                 <Button text="Close this order" press="onClosingOrder"/>
             </OverflowToolbar>
