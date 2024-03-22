@@ -6,13 +6,13 @@
         id="DeleteItemFragment">
     <Dialog contentWidth="1000px"
             id="deleteItem"
-            title="{= ${selectedItemForDeleteModel>/Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemForDeleteModel>/LineNum}+')'}  ">
+            title="{= ${selectedItemForDeleteModelSQL>/Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemForDeleteModel>/LineNum}+')'}  ">
 
 
         <Text text="Etes vous sure de vouloir supprimer cet élément de la commande ?"/>
 
         <Label text=" Entrer une Quantité a supprimer"/>
-        <Input required="true" value="{=${selectedItemForDeleteModel>/Quantity}}" />
+        <Input required="true" value="{=${selectedItemForDeleteModelSQL>/Quantity}}" />
 
         <buttons>
             <Button text="YES" press="onDeleteItemSQL"/>

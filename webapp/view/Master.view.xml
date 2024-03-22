@@ -24,7 +24,7 @@
                     <IconTabFilter text="Commandes en cours">
                     <l:Table
                             id="table"
-                            rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
+                            rows="{path:'ordersModelSQL>/', parameters: {arrayNames:['DocumentLines']}}"
                             selectionMode="MultiToggle"
                             enableSelectAll="false"
                             ariaLabelledBy="title">
@@ -39,14 +39,14 @@
                             <l:Column width="100px">
                                 <Label text="DocEntry"/>
                                 <l:template>
-                                    <Text text="{ordersModel>DocEntry}" wrapping="false"/>
+                                    <Text text="{ordersModelSQL>DocEntry}" wrapping="false"/>
                                 </l:template>
                             </l:Column>
 
                             <l:Column width="250px">
                                 <Label text="Clients"/>
                                 <l:template>
-                                    <Text text="{ordersModel>CardName} ({ordersModel>CardCode})"
+                                    <Text text="{ordersModelSQL>CardName} ({ordersModel>CardCode})"
                                           wrapping="false"/>
                                 </l:template>
                             </l:Column>
@@ -54,7 +54,7 @@
                             <l:Column width="100px">
                                 <Label text="Date"/>
                                 <l:template>
-                                    <Text text="{ordersModel>DocDueDate_formatted}"
+                                    <Text text="{ordersModelSQL>DocDueDate_formatted}"
                                           wrapping="false"/>
                                 </l:template>
                             </l:Column>
@@ -62,14 +62,14 @@
                             <l:Column width="100px">
                                 <Label text="TotalPrice "/>
                                 <l:template>
-                                    <Text text="{ordersModel>totalPriceInOrder} €" wrapping="false"/>
+                                    <Text text="{ordersModelSQL>totalPriceInOrder} €" wrapping="false"/>
                                 </l:template>
                             </l:Column>
 
                             <l:Column>
                                 <Label text="Address "/>
                                 <l:template>
-                                    <Text text="{ordersModel>Address}" wrapping="false"/>
+                                    <Text text="{ordersModelSQL>Address}" wrapping="false"/>
                                 </l:template>
                             </l:Column>
 
@@ -87,7 +87,7 @@
                     <IconTabFilter text="Voir les OF en cours">
                         <l:Table
                                 id="table2"
-                                rows="{path:'ordersModel>/', parameters: {arrayNames:['DocumentLines']}}"
+                                rows="{path:'ordersModelSQL>/', parameters: {arrayNames:['DocumentLines']}}"
                                 selectionMode="MultiToggle"
                                 enableSelectAll="false"
                                 ariaLabelledBy="title">
@@ -95,14 +95,14 @@
                                 <l:Column width="100px">
                                     <Label text="DocEntry"/>
                                     <l:template>
-                                        <Text text="{ordersModel>DocEntry}" wrapping="false"/>
+                                        <Text text="{ordersModelSQL>DocEntry}" wrapping="false"/>
                                     </l:template>
                                 </l:Column>
 
                                 <l:Column width="250px">
                                     <Label text="Orders"/>
                                     <l:template>
-                                        <Text text="{ordersModel>CardName} ({ordersModel>CardCode})"
+                                        <Text text="{ordersModelSQL>CardName} ({ordersModelSQL>CardCode})"
                                               wrapping="false"/>
                                     </l:template>
                                 </l:Column>
@@ -110,7 +110,7 @@
                                 <l:Column width="100px">
                                     <Label text="Date"/>
                                     <l:template>
-                                        <Text text="{ordersModel>DocDueDate_formatted}"
+                                        <Text text="{ordersModelSQL>DocDueDate_formatted}"
                                               wrapping="false"/>
                                     </l:template>
                                 </l:Column>
@@ -118,14 +118,14 @@
                                 <l:Column width="100px">
                                     <Label text="TotalPrice "/>
                                     <l:template>
-                                        <Text text="{ordersModel>totalPriceInOrder} €" wrapping="false"/>
+                                        <Text text="{ordersModelSQL>totalPriceInOrder} €" wrapping="false"/>
                                     </l:template>
                                 </l:Column>
 
                                 <l:Column>
                                     <Label text="Address "/>
                                     <l:template>
-                                        <Text text="{ordersModel>Address}" wrapping="false"/>
+                                        <Text text="{ordersModelSQL>Address}" wrapping="false"/>
                                     </l:template>
                                 </l:Column>
 

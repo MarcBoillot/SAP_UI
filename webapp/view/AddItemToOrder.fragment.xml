@@ -14,15 +14,17 @@
                     placeholder="Enter product"
                     showSuggestion="true"
                     suggest=".onSuggest"
-                    suggestionItems="{itemsListModel>/}" >
+                    suggestionItems="{itemsListModelSQL>/}"
+                    change="onSelectChangeSQL"
+                    >
                 <suggestionItems>
-                    <core:Item text="{itemsListModel>ItemName}" />
+                    <core:Item key="{itemsListModelSQL>ItemCode}" text="{itemsListModelSQL>ItemName}" />
                 </suggestionItems>
             </Input>
         </HBox>
         <HBox alignItems="Center" class="sapUiSmallMargin">
         <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>
-        <Input required="true" value="{newItemModel>/Quantity}" placeholder="Exemple : 45 "/>
+        <Input required="true" value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 45 "/>
         </HBox>
         <buttons>
             <Button text="CANCEL" press="onCancelAddItem"/>
