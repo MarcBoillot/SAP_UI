@@ -85,6 +85,7 @@ sap.ui.define([
 
         getItemsList: async function () {
             const items = await Views.getItems()
+            console.log("items dans getItemsList ::", items)
             const formatItems = []
             Object.values(items).forEach(item => {
                 const formatItem = {
@@ -122,7 +123,7 @@ sap.ui.define([
             });
 
             console.log("formatted items :", formatItems);
-            return formatItems; // Ensure you return the formatted items
+            return formatItems; //return the formatted items
         },
 
 
@@ -139,13 +140,9 @@ sap.ui.define([
 
         onShowItemsInOfSQL: async function (oEvent) {
             let that = this;
-            const selectedRow = oEvent.getSource().getBindingContext("ordersModelSQL").getObject();
-            const docEntry = selectedRow.DocEntry;
+            const docEntry =  oEvent.getSource().getBindingContext("ordersModelSQL").getObject().DocEntry;
             const oDialogName = this._byId("itemsDialog");
-
-            console.log("selected row :: ", selectedRow);
             console.log("docEntry :: ", docEntry);
-
             const items = await this.getItemsData();
             const itemsFilteredByDocEntry = items.filter(item => item.DocEntry === docEntry);
             console.log("itemsFilteredByDocEntry :: ", itemsFilteredByDocEntry);
@@ -155,7 +152,7 @@ sap.ui.define([
                     name: "wwl.view.ItemsForOf",
                     controller: this
                 }).then(async function (oDialog) {
-                    that._setModel(itemsFilteredByDocEntry, "itemsModelSQL");
+                    that._setModel({DocEntry: docEntry, DocumentLines: itemsFilteredByDocEntry}, "itemsModelSQL");
                     // Set filtered items model
                     that.openDialog(oDialog);
                 });
@@ -164,30 +161,26 @@ sap.ui.define([
 
 //******************************************* ADD ITEM IN ORDER ***************************************************
 
-        onOpenDialogAddItemSQL: function (event) {
-            let that = this;
-            let X = event.getSource().getParent()
-            const selectedRow = X.getBindingContext("ordersModelSQL").getObject();
-            const docEntry = selectedRow.DocEntry;
-            console.log("X :: ", X)
-            console.log("Commande sélectionnée : ", selectedRow);
-            console.log("DocEntry de la commande sélectionnée : ", docEntry);
-
-            Fragment.load({
-                name: "wwl.view.AddItemToOrder",
-                controller: this
-            }).then(function (oDialog) {
-                that.oView.addDependent(oDialog);
-                oDialog.attachAfterClose(() => oDialog.destroy());
-                oDialog.getEndButton(async () => {
-                    oDialog.close();
+        onOpenDialogAddItemSQL: function () {
+            let that = this
+            if (!this._byId("AddItemToOrder")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.AddItemToOrder",
+                    controller: this
+                }).then(function (oDialog) {
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(async () => {
+                        oDialog.close()
+                    });
+                    oDialog.setModel(new JSONModel({}), "newItemModelSQL")
+                    oDialog.open();
                 });
-                that._setModel(new JSONModel({
-                    docEntry: DocEntry
-                }), "newItemModelSQL");
-
-                oDialog.open();
-            });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
         },
 
 
@@ -212,14 +205,16 @@ sap.ui.define([
 
         onAddItemInOrderSQL: async function (event) {
             let that = this;
-            // const idOrder =
             const dialog = event.getSource().getParent();
             const selectedItem = dialog.getModel("newItemModelSQL").getData();
-            const items = this._getModel("itemsModelSQL").getData();
-
+            const itemsModelSQL = this._getModel("itemsModelSQL")
+            const itemsModelData = itemsModelSQL.getData()
+            const items = itemsModelData.DocumentLines;
+            const idOrder = itemsModelData.DocEntry
+            // const idOrder = event.getSource().getParent().getParent().getBindingContext("ordersModelSQL").getObject().DocEntry
             console.log("selectedItem ::", selectedItem)
             console.log("items :: ", items)
-
+            console.log("idOrder :: ", idOrder)
             if (Array.isArray(items)) {
                 //pour ajouter et pas ecraser la ligne deja existante
                 const lineNumArray = items.map(docLine => docLine.LineNum);
@@ -266,45 +261,57 @@ sap.ui.define([
 
         onOpenDialogDeleteSQL: function (oEvent) {
             let that = this
-            const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
+            const selectedItem = oEvent.getSource().getBindingContext("itemsModelSQL").getObject();
             const ItemCode = selectedItem.ItemCode;
             const ItemDescription = selectedItem.Dscription;
             const LineNum = selectedItem.LineNum
             const Quantity = selectedItem.Quantity
-             Fragment.load({
-                    name: "wwl.view.DeleteValidation",
-                    controller: this
+            console.log("selected item :: ", selectedItem)
+            Fragment.load({
+                name: "wwl.view.DeleteValidation",
+                controller: this
 
-                }).then(function (oDialog) {
+            }).then(function (oDialog) {
 
-                    that.oView.addDependent(oDialog);
-                    oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(function () {
-                        oDialog.close()
-                    });
-                    that._setModel({
-                        selectedItem: selectedItem,
-                        ItemCode: selectedItem.ItemCode,
-                        LineNum: selectedItem.LineNum + 1,
-                        Quantity: selectedItem.Quantity
-                    }, "selectedItemForDeleteModelSQL");
-
-                    oDialog.open();
+                that.oView.addDependent(oDialog);
+                oDialog.attachAfterClose(() => oDialog.destroy())
+                oDialog.getEndButton(function () {
+                    oDialog.close()
                 });
+                that._setModel({
+                    selectedItem: selectedItem,
+                    ItemCode: selectedItem.ItemCode,
+                    LineNum: selectedItem.LineNum + 1,
+                    Quantity: selectedItem.Quantity
+                }, "selectedItemForDeleteModelSQL");
+
+                oDialog.open();
+            });
         },
 
         onDeleteItemSQL: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-            const orderModelData = this._getModel("selectedItemForDeleteModelSQL").getData();
+
+            const orderModel = this._getModel("selectedItemForDeleteModelSQL")
+            const orderModelData = orderModel.getData();
+            const LineNumToItemToDelete = orderModelData.LineNum
             const selectedItem = orderModelData.selectedItem;
             const idOrder = orderModelData.selectedItem.DocEntry;
-            const allItemsInOrder = this._getModel("selectedRowModelSQL").getData();
-            const items = allItemsInOrder.DocumentLines;
+
+            const allItemsInItemsModel = this._getModel("itemsModelSQL")
+            const allItemsInOrderData = allItemsInItemsModel.getData();
+            const items = allItemsInOrderData.DocumentLines;
+
+            console.log("id Order :: ", idOrder)
+            console.log("all items in order data :: ", allItemsInOrderData)
+            console.log("items :: ",items)
+            console.log("orders model data ::", orderModelData)
+            console.log("LineNum item to delete :: ", LineNumToItemToDelete)
             // filter methode pour tableau
-            const updatedItems = items.filter(LineNum => LineNum !== selectedItem);
+            const filteredItems = items.filter(LineNum => LineNum !== LineNumToItemToDelete);
             // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
-            await Models.Orders().patch({DocumentLines: updatedItems}, idOrder, true)
+            await Models.Orders().patch({DocumentLines: filteredItems}, idOrder, true)
                 .then(() => {
                     console.log("Item deleted successfully!");
                 }).catch((error) => {
@@ -312,7 +319,7 @@ sap.ui.define([
                 });
             //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
             let updatedOrder = await Models.Orders().id(idOrder).get();
-            this._setModel(updatedOrder, 'selectedRowModelSQL');
+            this._setModel(updatedOrder, 'itemsModelSQL');
             dialog.close()
         },
 
@@ -391,7 +398,7 @@ sap.ui.define([
         },
 
         getItems: async function () {
-            const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").top(15).get();
+            const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").get();
             this._setModel(items.value, "itemsModel")
         },
 // ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
