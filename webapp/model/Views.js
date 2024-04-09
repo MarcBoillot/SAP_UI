@@ -141,6 +141,7 @@ sap.ui.define([
                     groupedData[docEntry].Address = line.Address
                     groupedData[docEntry].CodeBars = line.CodeBars
 
+
                 }
                 // groupedData[docEntry].push(line);
                 groupedData[docEntry].DocumentLines.push({
@@ -151,15 +152,50 @@ sap.ui.define([
                     OnHand: line.OnHand,
                     Price: line.Price,
                     Quantity: line.Quantity,
-                    WhsCode: line.WhsCode,
                     WhsName: line.WhsName,
+                    WhsCode: line.WhsCode,
+                    stockPerWhs: [],
                     totalStock: line.totalStock,
                     totalPriceByItem: line.totalPriceByItem,
                     totalPriceInOrder: line.totalPriceInOrder,
-                    LineNum: line.LineNum
+                    LineNum: line.LineNum +30014,
+
                 });
+                const groupedDataByLineNum = groupedData[docEntry].DocumentLines;
+                console.log("groupedDataByLineNum :: ", groupedDataByLineNum)
+                groupedDataByLineNum.forEach(line =>{
+                    const lineNum = line.LineNum ;
+                    if(!groupedDataByLineNum[lineNum]){
+                        line.stockPerWhs = [{
+                         WhsName:line.WhsName,
+                         WhsCode:line.WhsCode
+                     }];
+                    }else{
+                        groupedDataByLineNum[lineNum].stockPerWhs.push({
+                            WhsName:line.WhsName,
+                            WhsCode:line.WhsCode
+                        })
+                    }
+
+                })
+
+
+//nous sommes dans une commande et par commande il y a un documentLines
+                //je souhaite parcourir le documentLines de chaque commande
+                //si dans documentLines il y a les memes lignes num alors je push dans le stockperwhs
+                // DocumentLines.forEach(line =>{
+                //     const LineNum = line.LineNum
+                //     if (line.LineNum === LineNum){
+                //         groupedData.stockPerWhs.push({
+                //             WhsName:line.WhsName,
+                //             WhsCode:line.WhsCode
+                //         })
+                //     }
+                // })
             });
             return groupedData
+
+
 
             // return Object.values(groupedData).map(transferRequest => {
             //     const {

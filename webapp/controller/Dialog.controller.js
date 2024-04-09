@@ -48,6 +48,7 @@ sap.ui.define([
             const getRequestForOrders = await Views.getOrdersWithStock()
             const getRequestForItems = await Views.getItems()
             console.log("transferRequest ::", getRequestForOrders)
+
             console.log("getRequestForItems ::", getRequestForItems)
 
             // /** Exemple d'une 'SQLQueries' **/
@@ -101,7 +102,9 @@ sap.ui.define([
         getItemsData: async function () {
             const items = await Views.getOrdersWithStock();
             const formatItems = [];
-
+//formatItem est une variable qui recuperer une liste d'items avec ces champs ci dessous le problème etant que chaque items peut etre differencié par l'origine de son stock
+//la solution regrouper tous les stock en un seul stock générale pour éviter les lignes supplémentaires et pouvoir par la suite faire fonctionner la methode delete
+//la methode delete ne fonctionne pas car il y a plusieurs ligne avec le meme lineNum a cause des stocks
             Object.values(items).forEach(item => {
                 item.DocumentLines.forEach(line => {
                     const formatItem = {
@@ -112,8 +115,10 @@ sap.ui.define([
                         ItemCode: line.ItemCode,
                         Dscription: line.Dscription,
                         OnHand: line.OnHand,
-                        WhsCode: line.WhsCode,
-                        WhsName: line.WhsName,
+                        Whs:[{
+                            WhsCode: line.WhsCode,
+                            WhsName: line.WhsName,
+                        }],
                         totalStock: line.totalStock,
                         CodeBars: line.CodeBars,
                         LineNum: line.LineNum
@@ -281,7 +286,8 @@ sap.ui.define([
                 that._setModel({
                     selectedItem: selectedItem,
                     ItemCode: selectedItem.ItemCode,
-                    LineNum: selectedItem.LineNum + 1,
+                    Dscription: selectedItem.Dscription,
+                    LineNum: selectedItem.LineNum,
                     Quantity: selectedItem.Quantity
                 }, "selectedItemForDeleteModelSQL");
 
@@ -290,17 +296,17 @@ sap.ui.define([
         },
 
         onDeleteItemSQL: async function (event) {
-            let that = this;
             const dialog = event.getSource().getParent();
 
             const orderModel = this._getModel("selectedItemForDeleteModelSQL")
-            const orderModelData = orderModel.getData();
-            const LineNumToItemToDelete = orderModelData.LineNum
-            const selectedItem = orderModelData.selectedItem;
-            const idOrder = orderModelData.selectedItem.DocEntry;
-
             const allItemsInItemsModel = this._getModel("itemsModelSQL")
+
+            const orderModelData = orderModel.getData();
             const allItemsInOrderData = allItemsInItemsModel.getData();
+
+            const LineNumToItemToDelete = orderModelData.LineNum;
+            // const selectedItem = orderModelData.selectedItem;
+            const idOrder = orderModelData.selectedItem.DocEntry;
             const items = allItemsInOrderData.DocumentLines;
 
             console.log("id Order :: ", idOrder)
@@ -308,9 +314,13 @@ sap.ui.define([
             console.log("items :: ",items)
             console.log("orders model data ::", orderModelData)
             console.log("LineNum item to delete :: ", LineNumToItemToDelete)
+            // console.log("item selectionné dans l'order :: ", selectedItem)
             // filter methode pour tableau
-            const filteredItems = items.filter(LineNum => LineNum !== LineNumToItemToDelete);
+
+            // const filteredItems = items.filter(LineNum => LineNum !== selectedItem);
+            const filteredItems = items.filter(item => item.LineNum !== LineNumToItemToDelete);
             // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
+            console.log("filtered items", filteredItems)
             await Models.Orders().patch({DocumentLines: filteredItems}, idOrder, true)
                 .then(() => {
                     console.log("Item deleted successfully!");
