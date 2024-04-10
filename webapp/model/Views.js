@@ -158,11 +158,11 @@ sap.ui.define([
                     totalStock: line.totalStock,
                     totalPriceByItem: line.totalPriceByItem,
                     totalPriceInOrder: line.totalPriceInOrder,
-                    LineNum: line.LineNum +30014,
+                    LineNum: line.LineNum,
 
                 });
                 const groupedDataByLineNum = groupedData[docEntry].DocumentLines;
-                console.log("groupedDataByLineNum :: ", groupedDataByLineNum)
+
                 groupedDataByLineNum.forEach(line =>{
                     const lineNum = line.LineNum ;
                     if(!groupedDataByLineNum[lineNum]){
