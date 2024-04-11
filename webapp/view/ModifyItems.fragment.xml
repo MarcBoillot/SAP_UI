@@ -1,12 +1,10 @@
 <core:FragmentDefinition
         xmlns="sap.m"
-        xmlns:f="sap.f"
         xmlns:core="sap.ui.core"
-        xmlns:l="sap.ui.table"
         id="ModifyItemsFragment">
     <Dialog contentWidth="1000px"
             id="modifyItem"
-            title="{= ${selectedItemWithQuantity>/Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemWithQuantity>/LineNum}+')'}  ">
+            title="{= ${selectedItemWithQuantity>Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemWithQuantity>LineNum}+')'}  ">
 
 
         <Text text="Etes vous sure de vouloir modifier cet élément de la commande ?"/>

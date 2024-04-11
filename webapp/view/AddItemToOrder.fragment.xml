@@ -14,11 +14,11 @@
                     placeholder="Enter product"
                     showSuggestion="true"
                     suggest=".onSuggest"
-                    suggestionItems="{itemsListModelSQL>/}"
+                    suggestionItems="{itemsModelSQL>/}"
                     change="onSelectChangeSQL"
                     >
                 <suggestionItems>
-                    <core:Item key="{itemsListModelSQL>ItemCode}" text="{itemsListModelSQL>ItemName}" />
+                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}" />
                 </suggestionItems>
             </Input>
         </HBox>

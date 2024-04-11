@@ -47,90 +47,16 @@ sap.ui.define([
             // /** Exemple d'une vue SQL **/
             const getRequestForOrders = await Views.getOrdersWithStock()
             const getRequestForItems = await Views.getItems()
-            console.log("transferRequest ::", getRequestForOrders)
 
-            console.log("getRequestForItems ::", getRequestForItems)
+            this._setModel(getRequestForOrders, "ordersModelSQL");
+            this._setModel(getRequestForItems, "itemsModelSQL");
 
+            console.log("items ::", getRequestForItems)
+            console.log("orders ::", getRequestForOrders)
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
-
-            // await this.getBusinessPartner()
-            // await this.getOrders()
-            // await this.getStockItems()
-            // await this.getItems()
-            await this.getOrdersData()
-            await this.getItemsData()
-            await this.getItemsList()
         },
-
-//********************************************* GET View SQL **************************************************//
-
-        getOrdersData: async function () {
-            const orders = await Views.getOrdersWithStock();
-            const formatOrders = [];
-
-            Object.values(orders).forEach(order => {
-                const formatOrder = {
-                    DocDueDate_formatted: order.DocDueDate_formatted,
-                    DocEntry: order.DocEntry,
-                    CardCode: order.CardCode,
-                    CardName: order.CardName,
-                    totalPriceInOrder: order.totalPriceInOrder,
-                    Address: order.Address
-                };
-                formatOrders.push(formatOrder);
-            });
-            this._setModel(formatOrders, "ordersModelSQL");
-        },
-
-        getItemsList: async function () {
-            const items = await Views.getItems()
-            console.log("items dans getItemsList ::", items)
-            const formatItems = []
-            Object.values(items).forEach(item => {
-                const formatItem = {
-                    ItemCode: item.ItemCode,
-                    ItemName: item.ItemName,
-                    CodeBars: item.CodeBars
-                };
-                formatItems.push(formatItem);
-            });
-            this._setModel(formatItems, 'itemsListModelSQL')
-        },
-
-        getItemsData: async function () {
-            const items = await Views.getOrdersWithStock();
-            const formatItems = [];
-//formatItem est une variable qui recuperer une liste d'items avec ces champs ci dessous le problème etant que chaque items peut etre differencié par l'origine de son stock
-//la solution regrouper tous les stock en un seul stock générale pour éviter les lignes supplémentaires et pouvoir par la suite faire fonctionner la methode delete
-//la methode delete ne fonctionne pas car il y a plusieurs ligne avec le meme lineNum a cause des stocks
-            Object.values(items).forEach(item => {
-                item.DocumentLines.forEach(line => {
-                    const formatItem = {
-                        DocEntry: line.DocEntry,
-                        Quantity: line.Quantity,
-                        totalPriceByItem: line.totalPriceByItem,
-                        Price: line.Price,
-                        ItemCode: line.ItemCode,
-                        Dscription: line.Dscription,
-                        OnHand: line.OnHand,
-                        Whs: [{
-                            WhsCode: line.WhsCode,
-                            WhsName: line.WhsName,
-                        }],
-                        totalStock: line.totalStock,
-                        CodeBars: line.CodeBars,
-                        LineNum: line.LineNum
-                    };
-                    formatItems.push(formatItem);
-                });
-            });
-
-            console.log("formatted items :", formatItems);
-            return formatItems; //return the formatted items
-        },
-
 
 //-------------------------------------------------OPENDIALOG-------------------------------------------------//
 
@@ -145,24 +71,81 @@ sap.ui.define([
 
         onShowItemsInOfSQL: async function (oEvent) {
             let that = this;
-            const docEntry = oEvent.getSource().getBindingContext("ordersModelSQL").getObject().DocEntry;
+            const ordersModelObject = oEvent.getSource().getBindingContext("ordersModelSQL").getObject()
+            const docEntry = ordersModelObject.DocEntry;
+            const documentLinesObject =  ordersModelObject.DocumentLines
             const oDialogName = this._byId("itemsDialog");
             console.log("docEntry :: ", docEntry);
-            const items = await this.getItemsData();
+            const items = documentLinesObject;
             const itemsFilteredByDocEntry = items.filter(item => item.DocEntry === docEntry);
             console.log("itemsFilteredByDocEntry :: ", itemsFilteredByDocEntry);
-
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.ItemsForOf",
                     controller: this
                 }).then(async function (oDialog) {
-                    that._setModel({DocEntry: docEntry, DocumentLines: itemsFilteredByDocEntry}, "itemsModelSQL");
+                    that._setModel({
+                        DocEntry: docEntry,
+                        DocumentLines: itemsFilteredByDocEntry,
+                    }, "selectedRowModelSQL");
                     // Set filtered items model
                     that.openDialog(oDialog);
                 });
             }
+            await Views.getOrdersWithStock()
         },
+
+//****************************************** SHOW WHAREHOUSE ************************************************
+
+        onShowWarehouse: function (oEvent) {
+            let that = this;
+            const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
+            console.log("selected item :: ", selectedItem)
+            let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
+
+            selectedItem.stockPerWhs.forEach(line => {
+                let labelWarehouseCode = new sap.m.Label({text: "Code du Magasin : "}).addStyleClass("textMargin");
+                let textCode = new sap.m.Text({text: line.WhsCode});
+                let labelWarehouseName = new sap.m.Label({text: "Nom du Magasin : "}).addStyleClass("textMargin");
+                let textName = new sap.m.Text({text: line.WhsName});
+                let labelWarehouseOnHand = new sap.m.Label({text: "Quantité en magasin : "}).addStyleClass("textMargin");
+                let textOnHand = new sap.m.Text({text: line.OnHand});
+
+                let HboxName = new sap.m.HBox({
+                    items: [labelWarehouseName, textName],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HboxCode = new sap.m.HBox({
+                    items: [labelWarehouseCode, textCode],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HboxOnHand = new sap.m.HBox({
+                    items: [labelWarehouseOnHand, textOnHand],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                VBox.addItem(HboxName);
+                VBox.addItem(HboxCode);
+                VBox.addItem(HboxOnHand);
+            });
+
+            // Créer le dialog avec le contenu VBox
+            let dialog = new sap.m.Dialog({
+                title: "WAREHOUSE",
+                content: [VBox],
+                endButton: new sap.m.Button({
+                    text: "Fermer",
+                    press: () => {
+                        dialog.close();
+                    }
+                })
+            });
+            dialog.open();
+        }
+        ,
+
 
 //******************************************* ADD ITEM IN ORDER ***************************************************
 
@@ -189,34 +172,17 @@ sap.ui.define([
         },
 
 
-        // onOpenDialogAddItemSQL: function () {
-        //     let that = this
-        //
-        //         Fragment.load({
-        //             name: "wwl.view.AddItemToOrder",
-        //             controller: this
-        //         }).then(function (oDialog) {
-        //
-        //             that.oView.addDependent(oDialog);
-        //             oDialog.attachAfterClose(() => oDialog.destroy())
-        //             oDialog.getEndButton(async () => {
-        //                 oDialog.close()
-        //             });
-        //             oDialog.setModel(new JSONModel({}), "newItemModel")
-        //             oDialog.open();
-        //         });
-        // },
-
-
         onAddItemInOrderSQL: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
+
+            const itemsModelSQL = this._getModel("selectedRowModelSQL")
+
             const selectedItem = dialog.getModel("newItemModelSQL").getData();
-            const itemsModelSQL = this._getModel("itemsModelSQL")
             const itemsModelData = itemsModelSQL.getData()
+
             const items = itemsModelData.DocumentLines;
-            const idOrder = itemsModelData.DocEntry
-            // const idOrder = event.getSource().getParent().getParent().getBindingContext("ordersModelSQL").getObject().DocEntry
+            const idOrder = dialog.getModel("selectedRowModelSQL").getData().DocEntry
             console.log("selectedItem ::", selectedItem)
             console.log("items :: ", items)
             console.log("idOrder :: ", idOrder)
@@ -244,7 +210,7 @@ sap.ui.define([
                 let updatedOrder = await Models.Orders().id(idOrder).get();
                 console.log("updatedOrder :: ", updatedOrder)
                 this._setModel(updatedOrder, 'selectedRowModelSQL');
-                await that.getOrdersData()
+                await Views.getOrdersWithStock()
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
@@ -254,7 +220,7 @@ sap.ui.define([
 
         onDialogModifSQL: function (event) {
             let that = this
-            const selectedItem = event.getSource().getBindingContext("itemsModelSQL").getObject();
+            const selectedItem = event.getSource().getBindingContext("selectedRowModelSQL").getObject();
             const ItemCode = selectedItem.ItemCode;
             const ItemDescription = selectedItem.Dscription;
             const LineNum = selectedItem.LineNum
@@ -302,44 +268,10 @@ sap.ui.define([
             let updatedOrder = await Models.Orders().id(idOrder).get();
             console.log("updatedOrder :: ", updatedOrder)
             this._setModel(updatedOrder, 'selectedItemWithQuantity');
-            await that.getOrdersData()
+            // await that.getOrdersData()
             const dialog = this._byId("modifyItem")
             dialog.close();
 
-        },
-
-//****************************************** SHOW WHAREHOUSE ************************************************
-
-        onShowWharehouseInOrder: async function (event) {
-            let that = this;
-            const oDialogName = this._byId("wharehouse");
-            const idItem = event.getSource().getBindingContext("itemsModelSQL").getObject().ItemCode
-            const itemInOrder = event.getSource().getBindingContext("itemsModelSQL").getObject()
-            const whsItemInOrder = itemInOrder.Whs
-            console.log("item in order :: ",itemInOrder)
-            console.log("whs de l'item :: ",whsItemInOrder)
-            console.log("id item :: ",idItem)
-            console.log("le nom du whs :: ",whsItemInOrder[0].WhsName)
-            console.log("le code du whs :: ",whsItemInOrder[0].WhsCode)
-            whsItemInOrder.forEach(items=>items)
-            //voir a recuperer les items de la commandes ciblées ensuite recuperer le tableau whs qui contient whsname et wharecode
-
-            if (!oDialogName) {
-                this._oDialogDetail = Fragment.load({
-                    name: "wwl.view.WhareHouse",
-                    controller: this
-                }).then(async function (oDialog) {
-                    that._setModel({
-                        ItemCode: idItem,
-                        Quantity:itemInOrder.Quantity,
-                        TotalStock: itemInOrder.TotalStock,
-                        WhsName: whsItemInOrder.WhsName,
-                        WhsCode: whsItemInOrder.WhsCode,
-                    }, "itemsModelSQL");
-                    // Set filtered items model
-                    that.openDialog(oDialog);
-                });
-            }
         },
 
 
@@ -362,7 +294,7 @@ sap.ui.define([
 
         onOpenDialogDeleteSQL: function (oEvent) {
             let that = this
-            const selectedItem = oEvent.getSource().getBindingContext("itemsModelSQL").getObject();
+            const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
             const ItemCode = selectedItem.ItemCode;
             const ItemDescription = selectedItem.Dscription;
             const LineNum = selectedItem.LineNum
@@ -380,7 +312,6 @@ sap.ui.define([
                     oDialog.close()
                 });
                 that._setModel({
-                    selectedItem: selectedItem,
                     ItemCode: selectedItem.ItemCode,
                     Dscription: selectedItem.Dscription,
                     LineNum: selectedItem.LineNum,
@@ -404,7 +335,7 @@ sap.ui.define([
             const LineNumToItemToDelete = orderModelData.LineNum;
             // const selectedItem = orderModelData.selectedItem;
             const idOrder = orderModelData.selectedItem.DocEntry;
-            const items = allItemsInOrderData.DocumentLines;
+            const items = allItemsInOrderData;
 
             console.log("id Order :: ", idOrder)
             console.log("all items in order data :: ", allItemsInOrderData)
@@ -616,47 +547,6 @@ sap.ui.define([
                     oDialog.open();
                 });
             }
-        }
-        ,
-
-        onShowWarehouse: function (oEvent) {
-            let that = this;
-            const selectedRow = oEvent.getSource().getBindingContext("itemsModelSQL").getObject();
-            console.log(selectedRow);
-            let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
-
-            selectedRow.Whs.forEach(line => {
-                let labelWarehouseName = new sap.m.Label({text: "Magasin"});
-                let textName = new sap.m.Text({text: line.WhsName});
-                let labelWarehouseStock = new sap.m.Label({text: "Quantité"});
-                let textQty = new sap.m.Text({text: line.TotalStock});
-
-                let HboxName = new sap.m.HBox({
-                    items: [labelWarehouseName, textName],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                let HboxQty = new sap.m.HBox({
-                    items: [labelWarehouseStock, textQty],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                VBox.addItem(HboxName);
-                VBox.addItem(HboxQty);
-            });
-
-            // Créer le dialog avec le contenu VBox
-            let dialog = new sap.m.Dialog({
-                title: "WAREHOUSE",
-                content: [VBox],
-                endButton: new sap.m.Button({
-                    text: "Valider",
-                    press: () => {
-                        dialog.close();
-                    }
-                })
-            });
-            dialog.open();
         }
         ,
 

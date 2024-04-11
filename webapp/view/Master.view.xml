@@ -24,7 +24,7 @@
                     <IconTabFilter text="Commandes en cours">
                     <l:Table
                             id="table"
-                            rows="{path:'ordersModelSQL>/', parameters: {arrayNames:['DocumentLines']}}"
+                            rows="{path:'ordersModelSQL>/'}"
                             selectionMode="MultiToggle"
                             enableSelectAll="false"
                             ariaLabelledBy="title">
@@ -87,7 +87,7 @@
                     <IconTabFilter text="Voir les OF en cours">
                         <l:Table
                                 id="table2"
-                                rows="{path:'ordersModelSQL>/', parameters: {arrayNames:['DocumentLines']}}"
+                                rows="{ordersModelSQL>/}"
                                 selectionMode="MultiToggle"
                                 enableSelectAll="false"
                                 ariaLabelledBy="title">

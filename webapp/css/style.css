@@ -4,3 +4,11 @@
 .redLine{
     color:red;
 }
+
+.labelMargin {
+    margin-right: 5px; /* ajustez cette valeur selon vos besoins */
+}
+
+.textMargin {
+    margin-left: 5px; /* ajustez cette valeur selon vos besoins */
+}

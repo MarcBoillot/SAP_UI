@@ -50,7 +50,6 @@ sap.ui.define([
         },
 
 
-
         _resetQuery: function () {
             this.query = ""
         },
@@ -83,12 +82,12 @@ sap.ui.define([
             return this.formatOrders(await this.getView('GetOrdersWithStock'))
         },
 
-        getItems: async function (){
+        getItems: async function () {
             return this.noFormatItems(await this.getView('GetItems'))
         },
 
-        noFormatItems: function (data){
-            return data.d.results.map(result =>{
+        noFormatItems: function (data) {
+            return data.d.results.map(result => {
                 return {
                     ItemCode: result.ItemCode,
                     ItemName: result.ItemName,
@@ -127,77 +126,53 @@ sap.ui.define([
                 return [];
             }
 
-            const groupedData = [];
-            data.d.results.forEach(line => {
+            // const acc = [];
+            // data.d.results.forEach(line => {
+            // let groupedData = {}
+            return Object.values(data.d.results).reduce((acc, line) => {
                 const docEntry = line.DocEntry;
-                if (!groupedData[docEntry]) {
-                    groupedData[docEntry] = [];
-                    groupedData[docEntry].DocumentLines = []
-                    groupedData[docEntry].CardName = line.CardName
-                    groupedData[docEntry].CardCode = line.CardCode
-                    groupedData[docEntry].DocDueDate_formatted = line.DocDueDate_formatted
-                    groupedData[docEntry].totalPriceInOrder = line.totalPriceInOrder
-                    groupedData[docEntry].DocEntry = line.DocEntry
-                    groupedData[docEntry].Address = line.Address
-                    groupedData[docEntry].CodeBars = line.CodeBars
-
-
+                if (!acc[docEntry]) {
+                    acc[docEntry] = [];
+                    acc[docEntry].DocumentLines = []
+                    acc[docEntry].CardName = line.CardName
+                    acc[docEntry].CardCode = line.CardCode
+                    acc[docEntry].DocDueDate_formatted = line.DocDueDate_formatted
+                    acc[docEntry].totalPriceInOrder = line.totalPriceInOrder
+                    acc[docEntry].DocEntry = line.DocEntry
+                    acc[docEntry].Address = line.Address
+                    acc[docEntry].CodeBars = line.CodeBars
                 }
-                // groupedData[docEntry].push(line);
-                groupedData[docEntry].DocumentLines.push({
-                    DocEntry:line.DocEntry,
-                    Dscription: line.Dscription,
-                    ItemCode: line.ItemCode,
-                    CodeBars: line.CodeBars,
-                    OnHand: line.OnHand,
-                    Price: line.Price,
-                    Quantity: line.Quantity,
-                    WhsName: line.WhsName,
-                    WhsCode: line.WhsCode,
-                    stockPerWhs: [],
-                    totalStock: line.totalStock,
-                    totalPriceByItem: line.totalPriceByItem,
-                    totalPriceInOrder: line.totalPriceInOrder,
-                    LineNum: line.LineNum,
 
-                });
-                const groupedDataByLineNum = groupedData[docEntry].DocumentLines;
+                let existingLine = acc[docEntry].DocumentLines.find(docLine => line.LineNum == docLine.LineNum)
+                if (!existingLine) {
+                    acc[docEntry].DocumentLines.push({
+                        DocEntry: line.DocEntry,
+                        Dscription: line.Dscription,
+                        ItemCode: line.ItemCode,
+                        CodeBars: line.CodeBars,
+                        Price: line.Price,
+                        Quantity: line.Quantity,
+                        stockPerWhs: [{
+                            WhsName: line.WhsName,
+                            WhsCode: line.WhsCode,
+                            OnHand: line.OnHand
+                        }],
+                        totalStock: line.totalStock,
+                        totalPriceByItem: line.totalPriceByItem,
+                        totalPriceInOrder: line.totalPriceInOrder,
+                        LineNum: line.LineNum,
 
-                groupedDataByLineNum.forEach(line =>{
-                    const lineNum = line.LineNum ;
-                    if(!groupedDataByLineNum[lineNum]){
-                        line.stockPerWhs = [{
-                         WhsName:line.WhsName,
-                         WhsCode:line.WhsCode
-                     }];
-                    }else{
-                        groupedDataByLineNum[lineNum].stockPerWhs.push({
-                            WhsName:line.WhsName,
-                            WhsCode:line.WhsCode
-                        })
-                    }
-
-                })
+                    });
+                } else {
+                    existingLine.stockPerWhs.push({
+                        WhsName: line.WhsName, WhsCode: line.WhsCode, OnHand: line.OnHand
+                    })
+                }
+                return acc
+            }, {});
 
 
-//nous sommes dans une commande et par commande il y a un documentLines
-                //je souhaite parcourir le documentLines de chaque commande
-                //si dans documentLines il y a les memes lignes num alors je push dans le stockperwhs
-                // DocumentLines.forEach(line =>{
-                //     const LineNum = line.LineNum
-                //     if (line.LineNum === LineNum){
-                //         groupedData.stockPerWhs.push({
-                //             WhsName:line.WhsName,
-                //             WhsCode:line.WhsCode
-                //         })
-                //     }
-                // })
-            });
-            return groupedData
-
-
-
-            // return Object.values(groupedData).map(transferRequest => {
+            // return Object.values(acc).map(transferRequest => {
             //     const {
             //         CardCode,
             //         CardName,
