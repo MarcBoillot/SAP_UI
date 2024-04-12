@@ -47,12 +47,15 @@ sap.ui.define([
             // /** Exemple d'une vue SQL **/
             const getRequestForOrders = await Views.getOrdersWithStock()
             const getRequestForItems = await Views.getItems()
+            // const getRequestForBusinessPartners = await Views.getBusinessPartner()
 
             this._setModel(getRequestForOrders, "ordersModelSQL");
             this._setModel(getRequestForItems, "itemsModelSQL");
+            // this._setModel(getRequestForBusinessPartners, "businessPartnersModelSQL");
 
             console.log("items ::", getRequestForItems)
             console.log("orders ::", getRequestForOrders)
+            // console.log("business Partners ::", getRequestForBusinessPartners)
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
@@ -73,7 +76,7 @@ sap.ui.define([
             let that = this;
             const ordersModelObject = oEvent.getSource().getBindingContext("ordersModelSQL").getObject()
             const docEntry = ordersModelObject.DocEntry;
-            const documentLinesObject =  ordersModelObject.DocumentLines
+            const documentLinesObject = ordersModelObject.DocumentLines
             const oDialogName = this._byId("itemsDialog");
             console.log("docEntry :: ", docEntry);
             const items = documentLinesObject;
@@ -209,8 +212,8 @@ sap.ui.define([
                 });
                 let updatedOrder = await Models.Orders().id(idOrder).get();
                 console.log("updatedOrder :: ", updatedOrder)
-                this._setModel(updatedOrder, 'selectedRowModelSQL');
                 await Views.getOrdersWithStock()
+                this._setModel(updatedOrder, 'selectedRowModelSQL');
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
@@ -295,70 +298,50 @@ sap.ui.define([
         onOpenDialogDeleteSQL: function (oEvent) {
             let that = this
             const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
-            const ItemCode = selectedItem.ItemCode;
-            const ItemDescription = selectedItem.Dscription;
-            const LineNum = selectedItem.LineNum
-            const Quantity = selectedItem.Quantity
-            console.log("selected item :: ", selectedItem)
+            const selectedOrder = oEvent.getSource().getBindingContext("selectedRowModelSQL").getModel().getData()
+            // console.log("selectedItem in Dialog :: ", selectedItem)
+            // console.log("selectedOrder ::", selectedOrder)
             Fragment.load({
                 name: "wwl.view.DeleteValidation",
                 controller: this
 
             }).then(function (oDialog) {
-
                 that.oView.addDependent(oDialog);
+                console.log("oDialog.getBeginButton() ::", oDialog.getBeginButton())
+                console.log("oDialog.getEndButton() ::", oDialog.getEndButton())
                 oDialog.attachAfterClose(() => oDialog.destroy())
-                oDialog.getEndButton(function () {
+                oDialog.getEndButton().attachPress(() => oDialog.close())
+                oDialog.getBeginButton().attachPress(() => {
+                    that.onDeleteItemSQL(selectedOrder, selectedItem.LineNum)
                     oDialog.close()
-                });
-                that._setModel({
-                    ItemCode: selectedItem.ItemCode,
-                    Dscription: selectedItem.Dscription,
-                    LineNum: selectedItem.LineNum,
-                    Quantity: selectedItem.Quantity
-                }, "selectedItemForDeleteModelSQL");
+                })
+                oDialog.open()
+            })
+        },
 
-                oDialog.open();
-            });
-        }
-        ,
-
-        onDeleteItemSQL: async function (event) {
-            const dialog = event.getSource().getParent();
-
-            const orderModel = this._getModel("selectedItemForDeleteModelSQL")
-            const allItemsInItemsModel = this._getModel("itemsModelSQL")
-
-            const orderModelData = orderModel.getData();
-            const allItemsInOrderData = allItemsInItemsModel.getData();
-
-            const LineNumToItemToDelete = orderModelData.LineNum;
-            // const selectedItem = orderModelData.selectedItem;
-            const idOrder = orderModelData.selectedItem.DocEntry;
-            const items = allItemsInOrderData;
-
-            console.log("id Order :: ", idOrder)
-            console.log("all items in order data :: ", allItemsInOrderData)
-            console.log("items :: ", items)
-            console.log("orders model data ::", orderModelData)
-            console.log("LineNum item to delete :: ", LineNumToItemToDelete)
-            // console.log("item selectionné dans l'order :: ", selectedItem)
-            // filter methode pour tableau
-
-            // const filteredItems = items.filter(LineNum => LineNum !== selectedItem);
-            const filteredItems = items.filter(item => item.LineNum !== LineNumToItemToDelete);
-            // pour valider le changement de collection pour qu'elle soit remplacer par la nouvelle la methode patch doit return B1S-ReplaceCollectionsOnPatch a true
+        onDeleteItemSQL: async function (selectedOrder, lineNumToDelete) {
+            console.log("selectedOrder dans onDelete", selectedOrder)
+            const filteredItems = selectedOrder.DocumentLines.filter(item => item.LineNum !== lineNumToDelete);
+            // console.log("lineNum tab :: ", filteredItems.DocumentLines.LineNum)
             console.log("filtered items", filteredItems)
-            await Models.Orders().patch({DocumentLines: filteredItems}, idOrder, true)
+            const lineNums = filteredItems.map(item => {
+                return {LineNum: item.LineNum}
+            });
+            console.log("keep LineNUm ::", lineNums)
+
+            await Models.Orders().patch({DocumentLines: lineNums}, selectedOrder.DocEntry, true)
                 .then(() => {
                     console.log("Item deleted successfully!");
                 }).catch((error) => {
                     console.error("Error deleting item:", error);
                 });
-            //ne veut pas mettre a jour le fragment des items obligé de fermer le fragment manuellement et de re-ouvrir
-            let updatedOrder = await Models.Orders().id(idOrder).get();
-            this._setModel(updatedOrder, 'itemsModelSQL');
-            dialog.close()
+            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
+            console.log("ordersModelSQL ::", this._getModel("ordersModelSQL"))
+            console.log("ordersModelSQL.getData() ::", this._getModel("ordersModelSQL").getData())
+            const updatedOrders = this._getModel("ordersModelSQL").getData()
+            const orderUpdated = updatedOrders.find(order => selectedOrder.DocEntry === order.DocEntry)
+            this._setModel(orderUpdated, 'selectedRowModelSQL');
+
         }
         ,
 

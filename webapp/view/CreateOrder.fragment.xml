@@ -43,12 +43,12 @@
                 <Select
                         width="500px"
                         forceSelection="false"
-                        selectedKey="{newItemModel>/ItemCode}"
+                        selectedKey="{newItemModelSQL>/ItemCode}"
                         items="{
-						path: 'itemsModel>/',
+						path: 'itemsModelSQL>/',
 						sorter: { path: 'ItemName' }
 					}">
-                    <core:Item key="{itemsModel>ItemCode}" text="{itemsModel>ItemName}"/>
+                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}"/>
                 </Select>
                 </OverflowToolbar>
             </HBox>

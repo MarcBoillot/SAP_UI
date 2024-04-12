@@ -91,7 +91,18 @@
                                 selectionMode="MultiToggle"
                                 enableSelectAll="false"
                                 ariaLabelledBy="title">
+                            <l:extension>
+                                <OverflowToolbar style="Clear">
+                                    <Button text="Create an order" press="onOpenDialogAddOrder"/>
+                                </OverflowToolbar>
+                            </l:extension>
                             <l:columns>
+                                <l:Column width="100px">
+                                    <Label text="DocNum"/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>DocNum}" wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
                                 <l:Column width="100px">
                                     <Label text="DocEntry"/>
                                     <l:template>

@@ -86,6 +86,20 @@ sap.ui.define([
             return this.noFormatItems(await this.getView('GetItems'))
         },
 
+        // getBusinessPartners:async function(){
+        //   return this.noFormatBusinessPartners(await this.getView('GetBusinessPartners'))
+        // },
+        //
+        // noFormatBusinessPartners:function (){
+        //   return data.d.results.map(result =>{
+        //       return {
+        //           CardName:result.CardName,
+        //           CardCode:result.CardCode,
+        //           CardType:result.CardType,
+        //       }
+        //     })
+        // },
+
         noFormatItems: function (data) {
             return data.d.results.map(result => {
                 return {
@@ -105,6 +119,7 @@ sap.ui.define([
                 return {
                     DocDueDate_formatted: result.DocDueDate_formatted,
                     DocEntry: result.DocEntry,
+                    DocNum: result.DocNum,
                     CardCode: result.CardCode,
                     CardName: result.CardName,
                     ItemCode: result.ItemCode,
@@ -139,7 +154,7 @@ sap.ui.define([
                     acc[docEntry].DocDueDate_formatted = line.DocDueDate_formatted
                     acc[docEntry].totalPriceInOrder = line.totalPriceInOrder
                     acc[docEntry].DocEntry = line.DocEntry
-                    acc[docEntry].Address = line.Address
+                    acc[docEntry].DocNum = line.DocNum
                     acc[docEntry].CodeBars = line.CodeBars
                 }
 
@@ -169,6 +184,7 @@ sap.ui.define([
                     })
                 }
                 return acc
+                //besoin d'un tableau d'objet
             }, {});
 
 
