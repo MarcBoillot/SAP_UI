@@ -47,19 +47,45 @@ sap.ui.define([
             // /** Exemple d'une vue SQL **/
             const getRequestForOrders = await Views.getOrdersWithStock()
             const getRequestForItems = await Views.getItems()
-            // const getRequestForBusinessPartners = await Views.getBusinessPartner()
+            const getRequestForBusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
+            // const getRequestForBusinessPartners = await Views.getBusinessPartners()
 
             this._setModel(getRequestForOrders, "ordersModelSQL");
+            this._setModel(getRequestForBusinessPartners.value, "BusinessPartnersModelSL")
             this._setModel(getRequestForItems, "itemsModelSQL");
             // this._setModel(getRequestForBusinessPartners, "businessPartnersModelSQL");
 
             console.log("items ::", getRequestForItems)
             console.log("orders ::", getRequestForOrders)
+            console.log("BP :: ", getRequestForBusinessPartners)
             // console.log("business Partners ::", getRequestForBusinessPartners)
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
         },
+
+// --------------------------------------------------ALL REQUEST IN BDD-------------------------------------------- //
+
+        // getBusinessPartner: async function () {
+        //     const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
+        //     this._setModel(BusinessPartners.value, "BusinessPartnersModel")
+        // },
+
+        // getOrders: async function () {
+        //     const orders = await Models.Orders().orderby("DocEntry desc").top(20).get();
+        //
+        //     orders.value.forEach(order => {
+        //         this.transformDocumentLines(order.DocumentLines);
+        //         order.TotalPrice = this.calculateSumPrices(order.DocumentLines).toFixed(2);
+        //         order.TotalQuantity = this.calculateTotalQuantity(order.DocumentLines);
+        //     });
+        //     this._setModel(orders.value, "ordersModel");
+        // },
+
+        // getItems: async function () {
+        //     const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").get();
+        //     this._setModel(items.value, "itemsModel")
+        // },
 
 //-------------------------------------------------OPENDIALOG-------------------------------------------------//
 
@@ -95,7 +121,8 @@ sap.ui.define([
                     that.openDialog(oDialog);
                 });
             }
-            await Views.getOrdersWithStock()
+            const getRequestForOrders = await Views.getOrdersWithStock()
+            this._setModel(getRequestForOrders, "ordersModelSQL");
         },
 
 //****************************************** SHOW WHAREHOUSE ************************************************
@@ -133,7 +160,6 @@ sap.ui.define([
                 VBox.addItem(HboxCode);
                 VBox.addItem(HboxOnHand);
             });
-
             // Créer le dialog avec le contenu VBox
             let dialog = new sap.m.Dialog({
                 title: "WAREHOUSE",
@@ -174,16 +200,12 @@ sap.ui.define([
             }
         },
 
-
         onAddItemInOrderSQL: async function (event) {
             let that = this;
             const dialog = event.getSource().getParent();
-
             const itemsModelSQL = this._getModel("selectedRowModelSQL")
-
             const selectedItem = dialog.getModel("newItemModelSQL").getData();
             const itemsModelData = itemsModelSQL.getData()
-
             const items = itemsModelData.DocumentLines;
             const idOrder = dialog.getModel("selectedRowModelSQL").getData().DocEntry
             console.log("selectedItem ::", selectedItem)
@@ -212,86 +234,15 @@ sap.ui.define([
                 });
                 let updatedOrder = await Models.Orders().id(idOrder).get();
                 console.log("updatedOrder :: ", updatedOrder)
-                await Views.getOrdersWithStock()
-                this._setModel(updatedOrder, 'selectedRowModelSQL');
                 dialog.close();
             } else {
                 console.error("DocumentLines is not an array");
             }
+            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
+            const updatedOrders = this._getModel("ordersModelSQL").getData()
+            const orderUpdated = updatedOrders.find(order => idOrder === order.DocEntry)
+            this._setModel(orderUpdated, 'selectedRowModelSQL');
         },
-//************************************* MODIFY ITEM IN ORDER *****************************************************
-
-        onDialogModifSQL: function (event) {
-            let that = this
-            const selectedItem = event.getSource().getBindingContext("selectedRowModelSQL").getObject();
-            const ItemCode = selectedItem.ItemCode;
-            const ItemDescription = selectedItem.Dscription;
-            const LineNum = selectedItem.LineNum
-            const Quantity = selectedItem.Quantity
-
-            console.log("selected item :: ", selectedItem)
-            Fragment.load({
-                name: "wwl.view.ModifyItems",
-                controller: this
-
-            }).then(function (oDialog) {
-
-                that.oView.addDependent(oDialog);
-                oDialog.attachAfterClose(() => oDialog.destroy())
-                oDialog.getEndButton(function () {
-                    oDialog.close()
-                });
-                that._setModel({
-                    selectedItem: selectedItem,
-                    Quantity: selectedItem.Quantity,
-                }, "selectedItemWithQuantity");
-
-                oDialog.open();
-            });
-        },
-
-        onChangeQuantityOfItem: async function (event) {
-            let that = this;
-            const selectedItem = event.getSource().getParent().getModel("selectedItemWithQuantity").getData();
-            const itemsModelSQL = this._getModel("itemsModelSQL")
-            const itemsModelData = itemsModelSQL.getData()
-            const idOrder = itemsModelData.DocEntry
-            const dataToPatch = {
-                DocumentLines: [
-                    {
-                        Quantity: selectedItem.Quantity,
-                    }
-                ]
-            };
-            await Models.Orders().patch(dataToPatch, idOrder).then(async function () {
-                console.log("PATCH successful");
-            }).catch(function (error) {
-                console.error("PATCH failed", error);
-            });
-            let updatedOrder = await Models.Orders().id(idOrder).get();
-            console.log("updatedOrder :: ", updatedOrder)
-            this._setModel(updatedOrder, 'selectedItemWithQuantity');
-            // await that.getOrdersData()
-            const dialog = this._byId("modifyItem")
-            dialog.close();
-
-        },
-
-
-//******************************************** SELECT ITEM *****************************************************
-
-        onSelectChangeSQL:
-
-            function (event) {
-                // const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsListModel").getObject()
-                const selectedItem = event.getSource()
-                const dialog = event.getSource().getParent().getParent();
-                console.log("item selectionné :: ", selectedItem)
-                dialog.getModel("newItemModelSQL").getData().ItemCode = selectedItem.getSelectedKey()
-                // this._getModel("newItemModel").getData().ItemCode = selectedItem.getSelectedKey()
-            }
-
-        ,
 
 //****************************************** DELETE ITEM IN ORDER *************************************************
 
@@ -299,8 +250,6 @@ sap.ui.define([
             let that = this
             const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
             const selectedOrder = oEvent.getSource().getBindingContext("selectedRowModelSQL").getModel().getData()
-            // console.log("selectedItem in Dialog :: ", selectedItem)
-            // console.log("selectedOrder ::", selectedOrder)
             Fragment.load({
                 name: "wwl.view.DeleteValidation",
                 controller: this
@@ -328,7 +277,6 @@ sap.ui.define([
                 return {LineNum: item.LineNum}
             });
             console.log("keep LineNUm ::", lineNums)
-
             await Models.Orders().patch({DocumentLines: lineNums}, selectedOrder.DocEntry, true)
                 .then(() => {
                     console.log("Item deleted successfully!");
@@ -336,44 +284,76 @@ sap.ui.define([
                     console.error("Error deleting item:", error);
                 });
             this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
-            console.log("ordersModelSQL ::", this._getModel("ordersModelSQL"))
-            console.log("ordersModelSQL.getData() ::", this._getModel("ordersModelSQL").getData())
             const updatedOrders = this._getModel("ordersModelSQL").getData()
             const orderUpdated = updatedOrders.find(order => selectedOrder.DocEntry === order.DocEntry)
             this._setModel(orderUpdated, 'selectedRowModelSQL');
+        },
 
-        }
-        ,
+//************************************* MODIFY ITEM IN ORDER *****************************************************
 
+        onDialogModifSQL: function (event) {
+            let that = this
+            const selectedItem = event.getSource().getBindingContext("selectedRowModelSQL").getObject();
+            const selectedOrder = event.getSource().getBindingContext("selectedRowModelSQL").getModel().getData()
+            const Quantity = selectedItem.Quantity
+            Fragment.load({
+                name: "wwl.view.ModifyItems",
+                controller: this
 
-//-------------------------------------------------MATH IN PRICE---------------------------------------------//
+            }).then(function (oDialog) {
+                that.oView.addDependent(oDialog);
+                oDialog.attachAfterClose(() => oDialog.destroy())
+                oDialog.getEndButton(function () {
+                    oDialog.close()
+                });
+                that._setModel({
+                    selectedItem: selectedItem,
+                    Quantity: selectedItem.Quantity,
+                }, "selectedItemWithQuantity");
 
-        transformDocumentLines: function (documentLines) {
-            documentLines.forEach(item => {
-                if (typeof item === 'object') {
-                    item.totalPriceForItem = (item.Price * item.Quantity).toFixed(2);
-                }
+                oDialog.open();
             });
-        }
-        ,
+        },
 
-        calculateSumPrices: function (documentLines) {
-            const isObject = obj => typeof obj === 'object';
-            return documentLines.reduce((total, currentLine) => {
-                if (isObject(currentLine)) {
-                    const totalPriceForItem = currentLine.Price * currentLine.Quantity;
-                    return total + totalPriceForItem;
-                }
-                return total;
-            }, 0);
-        }
-        ,
+        onChangeQuantityOfItem: async function (event) {
+            let that = this;
+            const selectedItem = event.getSource().getParent().getModel("selectedItemWithQuantity").getData();
+            const selectedOrder = event.getSource().getParent().getModel("selectedRowModelSQL").getData()
+            const idOrder = selectedOrder.DocEntry
 
-        calculateTotalQuantity: function (documentLines) {
-            const isObject = obj => typeof obj === 'object';
-            return documentLines.reduce((total, currentLine) => isObject(currentLine) ? total + currentLine.Quantity : total, 0);
-        }
-        ,
+            console.log("selectedOrder ::", selectedOrder)
+            console.log("selecteditem Quantity :: ", selectedItem.Quantity)
+            console.log("id Order :: ", idOrder)
+            const dataToPatch = {
+                DocumentLines: [
+                    {
+                        Quantity: selectedItem.Quantity,
+                    }
+                ]
+            };
+            await Models.Orders().patch(dataToPatch, idOrder).then(async function () {
+                console.log("PATCH successful");
+            }).catch(function (error) {
+                console.error("PATCH failed", error);
+            });
+            let updatedOrder = await Models.Orders().id(idOrder).get();
+            console.log("updatedOrder :: ", updatedOrder)
+            this._setModel(updatedOrder, 'selectedItemWithQuantity');
+            // await that.getOrdersData()
+
+        },
+
+
+//******************************************** SELECT ITEM *****************************************************
+
+        onSelectChangeSQL: function (event) {
+                // const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsListModel").getObject()
+                const selectedItem = event.getSource()
+                const dialog = event.getSource().getParent().getParent();
+                console.log("item selectionné :: ", selectedItem)
+                dialog.getModel("newItemModelSQL").getData().ItemCode = selectedItem.getSelectedKey()
+                // this._getModel("newItemModel").getData().ItemCode = selectedItem.getSelectedKey()
+            },
 
 // -------------------------------------------MODIFICATION IN SELECT------------------------------------------------- //
 
@@ -381,57 +361,13 @@ sap.ui.define([
             const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsModel").getObject()
             console.log("item selectionné :: ", selectedItem)
             this._getModel("newItemModel").getData().ItemCode = selectedItem.ItemCode
-        }
-        ,
+        },
 
         onSelectChangeBusinessPartner: function (event) {
-            const selectedBusinessPartner = event.getSource().getSelectedBusinessPartner().getBindingContext("BusinessPartnersModel").getObject()
-            this._getModel("selectedBusinessPartnerModel").getData().CardCode = selectedBusinessPartner.CardCode
-        }
-        ,
+            const selectedBusinessPartner = event.getSource().getSelectedBusinessPartner().getBindingContext("BusinessPartnersModelSL").getObject()
+            this._getModel("selectedBusinessPartnerModelSL").getData().CardCode = selectedBusinessPartner.CardCode
+        },
 
-// --------------------------------------------------ALL REQUEST IN BDD-------------------------------------------- //
-
-        getBusinessPartner: async function () {
-            const BusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
-            this._setModel(BusinessPartners.value, "BusinessPartnersModel")
-        }
-        ,
-
-        getOrders: async function () {
-            const orders = await Models.Orders().orderby("DocEntry desc").top(20).get();
-
-            orders.value.forEach(order => {
-                this.transformDocumentLines(order.DocumentLines);
-                order.TotalPrice = this.calculateSumPrices(order.DocumentLines).toFixed(2);
-                order.TotalQuantity = this.calculateTotalQuantity(order.DocumentLines);
-            });
-            this._setModel(orders.value, "ordersModel");
-        }
-        ,
-
-        getStockItems: async function () {
-            try {
-                const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").top(15).get();
-                const stocks = items.value.map(item => {
-                    if (item.ItemWarehouseInfoCollection.length > 0) {
-                        return item.ItemWarehouseInfoCollection.reduce((total, warehouse) => total + warehouse.InStock, 0);
-                    } else {
-                        return 0;
-                    }
-                });
-                this._setModel(stocks, "stocksModel");
-            } catch (error) {
-                console.error("Error fetching items:", error);
-            }
-        }
-        ,
-
-        getItems: async function () {
-            const items = await Models.Items().filter("Frozen ne 'tYES' and BarCode ne 'null'").get();
-            this._setModel(items.value, "itemsModel")
-        }
-        ,
 // ------------------------------------------------CLOSE DIALOG------------------------------------------------------ //
 
 
@@ -613,8 +549,8 @@ sap.ui.define([
                     oDialog.getEndButton(async function () {
                         oDialog.close()
                     });
-                    oDialog.setModel(new JSONModel({}), "newItemModel")
-                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModel")
+                    oDialog.setModel(new JSONModel({}), "newItemModelSQL")
+                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModelSL")
                     oDialog.open();
                 });
             } else {
@@ -627,8 +563,10 @@ sap.ui.define([
         onCreateNewOrder: async function (event) {
             let that = this
             const dialog = event.getSource().getParent();
-            const selectedItem = dialog.getModel("newItemModel").getData();
-            const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModel").getData();
+            const selectedItem = dialog.getModel("newItemModelSQL").getData();
+            //a revoir ne fonctionne pas
+            console.log("selecteditem.itemcode", selectedItem.ItemCode)
+            const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModelSL").getData();
             let oModel = that.getView().getModel();
             await Models.Orders().post({
                 CardCode: selectedBusinessPartner.CardCode,
@@ -637,7 +575,7 @@ sap.ui.define([
                 DocumentLines: [
                     {
                         ItemCode: selectedItem.ItemCode,
-                        Quantity: 1
+                        Quantity: selectedItem.Quantity
                     }
                 ]
             }).then(function () {
@@ -646,7 +584,8 @@ sap.ui.define([
                 console.error("POST failed", error);
             });
             // refresh done
-            await that.getOrders();
+            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
+            this._getModel("ordersModelSQL").getData()
             dialog.close();
         }
         ,

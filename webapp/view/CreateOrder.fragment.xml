@@ -25,13 +25,13 @@
                         id="selectedBusinessPartner"
                         width="500px"
                         forceSelection="false"
-                        selectedKey="{selectedBusinessPartnerModel>/CardCode}"
+                        selectedKey="{selectedBusinessPartnerModelSL>/CardCode}"
                         items="{
-						path: 'BusinessPartnersModel>/',
+						path: 'BusinessPartnersModelSL>/',
 						sorter: { path: 'CardName' }
 					}"
                 >
-                    <core:Item key="{BusinessPartnersModel>CardCode}" text="{BusinessPartnersModel>CardName}"/>
+                    <core:Item key="{BusinessPartnersModelSL>CardCode}" text="{BusinessPartnersModelSL>CardName}"/>
                 </Select>
                 </OverflowToolbar>
             </HBox>
@@ -55,7 +55,7 @@
             <OverflowToolbar>
             <Label text="Entrez une Quantity"/>
 
-            <Input value="1" width="500px" />
+            <Input value="{newItemModelSQL>/Quantity}" width="500px" />
             </OverflowToolbar>
         </VBox>
         <buttons>

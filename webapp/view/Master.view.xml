@@ -21,68 +21,7 @@
             <IconTabBar>
                 <items>
 
-                    <IconTabFilter text="Commandes en cours">
-                    <l:Table
-                            id="table"
-                            rows="{path:'ordersModelSQL>/'}"
-                            selectionMode="MultiToggle"
-                            enableSelectAll="false"
-                            ariaLabelledBy="title">
-                        <l:extension>
-                            <OverflowToolbar style="Clear">
-                                <Button text="Create an order" press="onOpenDialogAddOrder"/>
-                            </OverflowToolbar>
-                        </l:extension>
 
-                        <l:columns>
-
-                            <l:Column width="100px">
-                                <Label text="DocEntry"/>
-                                <l:template>
-                                    <Text text="{ordersModelSQL>DocEntry}" wrapping="false"/>
-                                </l:template>
-                            </l:Column>
-
-                            <l:Column width="250px">
-                                <Label text="Clients"/>
-                                <l:template>
-                                    <Text text="{ordersModelSQL>CardName} ({ordersModel>CardCode})"
-                                          wrapping="false"/>
-                                </l:template>
-                            </l:Column>
-
-                            <l:Column width="100px">
-                                <Label text="Date"/>
-                                <l:template>
-                                    <Text text="{ordersModelSQL>DocDueDate_formatted}"
-                                          wrapping="false"/>
-                                </l:template>
-                            </l:Column>
-
-                            <l:Column width="100px">
-                                <Label text="TotalPrice "/>
-                                <l:template>
-                                    <Text text="{ordersModelSQL>totalPriceInOrder} €" wrapping="false"/>
-                                </l:template>
-                            </l:Column>
-
-                            <l:Column>
-                                <Label text="Address "/>
-                                <l:template>
-                                    <Text text="{ordersModelSQL>Address}" wrapping="false"/>
-                                </l:template>
-                            </l:Column>
-
-                            <l:Column width="100px">
-                                <Label text="Button"/>
-                                <l:template>
-                                    <Button text="itemsView" press="onShowItemsInOrder"/>
-                                </l:template>
-                            </l:Column>
-
-                        </l:columns>
-                    </l:Table>
-                    </IconTabFilter>
 
                     <IconTabFilter text="Voir les OF en cours">
                         <l:Table
@@ -144,6 +83,69 @@
                                     <Label text="Button"/>
                                     <l:template>
                                         <Button text="Voir Produits" press="onShowItemsInOfSQL"/>
+                                    </l:template>
+                                </l:Column>
+
+                            </l:columns>
+                        </l:Table>
+                    </IconTabFilter>
+
+                    <IconTabFilter text="Commandes en cours">
+                        <l:Table
+                                id="table"
+                                rows="{path:'ordersModelSQL>/'}"
+                                selectionMode="MultiToggle"
+                                enableSelectAll="false"
+                                ariaLabelledBy="title">
+                            <l:extension>
+                                <OverflowToolbar style="Clear">
+                                    <Button text="Create an order" press="onOpenDialogAddOrder"/>
+                                </OverflowToolbar>
+                            </l:extension>
+
+                            <l:columns>
+
+                                <l:Column width="100px">
+                                    <Label text="DocEntry"/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>DocEntry}" wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
+
+                                <l:Column width="250px">
+                                    <Label text="Clients"/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>CardName} ({ordersModel>CardCode})"
+                                              wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
+
+                                <l:Column width="100px">
+                                    <Label text="Date"/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>DocDueDate_formatted}"
+                                              wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
+
+                                <l:Column width="100px">
+                                    <Label text="TotalPrice "/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>totalPriceInOrder} €" wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
+
+                                <l:Column>
+                                    <Label text="Address "/>
+                                    <l:template>
+                                        <Text text="{ordersModelSQL>Address}" wrapping="false"/>
+                                    </l:template>
+                                </l:Column>
+
+                                <l:Column width="100px">
+                                    <Label text="Button"/>
+                                    <l:template>
+                                        <Button text="itemsView" press="onShowItemsInOrder"/>
                                     </l:template>
                                 </l:Column>
 

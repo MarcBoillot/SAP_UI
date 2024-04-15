@@ -77,7 +77,6 @@ sap.ui.define([
         },
 
         getOrdersWithStock: async function () {
-            // return this.formatTransferRequestData(await this.getView('OB1_GET_TRANSFER_REQUESTS_M4_B1SLQuery'))
             // return await this.getView('GetOrdersWithStock');
             return this.formatOrders(await this.getView('GetOrdersWithStock'))
         },
@@ -89,7 +88,7 @@ sap.ui.define([
         // getBusinessPartners:async function(){
         //   return this.noFormatBusinessPartners(await this.getView('GetBusinessPartners'))
         // },
-        //
+
         // noFormatBusinessPartners:function (){
         //   return data.d.results.map(result =>{
         //       return {
@@ -140,14 +139,10 @@ sap.ui.define([
             if (!data || !data.d.results || data.d.results.length === 0) {
                 return [];
             }
-
-            // const acc = [];
-            // data.d.results.forEach(line => {
-            // let groupedData = {}
-            return Object.values(data.d.results).reduce((acc, line) => {
+            return Object.values(data.d.results.reduce((acc, line) => {
                 const docEntry = line.DocEntry;
                 if (!acc[docEntry]) {
-                    acc[docEntry] = [];
+                    acc[docEntry] = {};
                     acc[docEntry].DocumentLines = []
                     acc[docEntry].CardName = line.CardName
                     acc[docEntry].CardCode = line.CardCode
@@ -185,100 +180,8 @@ sap.ui.define([
                 }
                 return acc
                 //besoin d'un tableau d'objet
-            }, {});
-
-
-            // return Object.values(acc).map(transferRequest => {
-            //     const {
-            //         CardCode,
-            //         CardName,
-            //         DocDueDate,
-            //         DocEntry,
-            //         Dscription,
-            //         ItemCode,
-            //         OnHand,
-            //         Price,
-            //         Quantity,
-            //         WhsCode,
-            //         WhsName,
-            //         totalStock,
-            //         totalPriceByItem,
-            //         totalPriceInOrder,
-            //     } = transferRequest[0];
-            //
-            //     return {
-            //         CardCode,
-            //         CardName,
-            //         DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
-            //         DocEntry,
-            //         Dscription,
-            //         ItemCode,
-            //         OnHand,
-            //         Price,
-            //         Quantity,
-            //         WhsName,
-            //         WhsCode,
-            //         totalStock,
-            //         totalPriceByItem,
-            //         totalPriceInOrder,
-            //     };
-            // });
+            }, {}));
         },
-
-
-        // formatTransferRequestData: function (data) {
-        //     return Object.values(data.value.reduce((accumulator, currentvalue) => {
-        //         accumulator[currentvalue.DocEntry] = accumulator[currentvalue.DocEntry] || []
-        //         accumulator[currentvalue.DocEntry].push(currentvalue)
-        //         return accumulator
-        //     }, {}))
-        //         .map(transferRequest => {
-        //             const {
-        //                 DocDueDate,
-        //                 DocEntry,
-        //                 CardCode,
-        //                 cardName,
-        //                 ItemCode,
-        //                 Dscription,
-        //                 OnHand,
-        //                 WhsName,
-        //                 WhsCode,
-        //                 Price,
-        //                 Quantity,
-        //                 totalStock,
-        //                 totalPriceInOrder,
-        //                 totalPriceByItem,
-        //
-        //                 // U_OB1_PREP_ENCOURS: InPreparation,
-        //                 // U_OB1_OPERATEUR,
-        //                 // pendingRequestBinLoc
-        //             } = transferRequest[0]
-        //
-        //             return {
-        //
-        //                 DocDueDate: new Date(DocDueDate).toLocaleDateString('fr'),
-        //                 DocEntry,
-        //                 CardCode,
-        //                 cardName,
-        //                 ItemCode,
-        //                 Dscription,
-        //                 OnHand,
-        //                 WhsName,
-        //                 WhsCode,
-        //                 Price,
-        //                 Quantity,
-        //                 totalStock,
-        //                 totalPriceInOrder,
-        //                 totalPriceByItem,
-        //                 // DocNum,
-        //                 // InPreparation,
-        //                 // StockTransferLines: transferRequest,
-        //                 // U_OB1_OPERATEUR,
-        //                 // pendingRequestBinLoc,
-        //                 // NbLines: transferRequest.filter(item => item.InvntItem === 'Y').length
-        //             }
-        //         })
-        // },
 
         getError: function (e) {
             if (e.stack) {

@@ -20,7 +20,7 @@
             >
                 <l:columns>
 
-                    <l:Column width="100px">
+                    <l:Column width="80px">
                         <Label text="Code Bar"/>
                         <l:template>
                             <Text text="{selectedRowModelSQL>CodeBars}"
@@ -28,7 +28,7 @@
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="500px">
+                    <l:Column width="200px">
                         <Label text="Name"/>
                         <l:template>
                             <Text text="{selectedRowModelSQL>Dscription}"
@@ -43,45 +43,45 @@
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="100px">
+                    <l:Column width="80px">
                         <Label text="Qty InStock"/>
                         <l:template>
                             <Text text="{selectedRowModelSQL>totalStock}" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="100px">
+                    <l:Column width="80px">
                         <Label text="Price/u"/>
                         <l:template>
                             <Text text="{selectedRowModelSQL>Price} €" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="100px">
+                    <l:Column width="80px">
                         <Label text="total price"/>
                         <l:template>
                             <Text text="{selectedRowModelSQL>totalPriceByItem} €" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="150px">
+                    <l:Column width="120px">
                         <Label text="Button"/>
                         <l:template>
-                            <Button text="Voir les magasins" press="onShowWarehouse"/>
+                            <Button text="Wharehouse" press="onShowWarehouse"/>
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="100px">
+                    <l:Column width="80px">
                         <Label text="Modify"/>
                         <l:template>
-                            <Button text="modify" press="onDialogModifSQL"/>
+                            <Button text="Modify" press="onDialogModifSQL"/>
                         </l:template>
                     </l:Column>
 
-                    <l:Column class="sapUiSmallMargin" width="100px">
+                    <l:Column class="sapUiSmallMargin" width="80px">
                         <Label text="Delete"/>
                         <l:template>
-                            <Button text="Supprimer" press="onOpenDialogDeleteSQL"/>
+                            <Button text="Delete" press="onOpenDialogDeleteSQL"/>
                         </l:template>
                     </l:Column>
 
