@@ -5,6 +5,7 @@ sap.ui.define([
     "wwl/utils/Formatter",
     "sap/m/MessageToast",
     "sap/ui/core/Fragment",
+    "sap/ui/core/MessageType",
 
 ], function (
     BaseController,
@@ -98,11 +99,11 @@ sap.ui.define([
 
 //********************************************* ITEMS IN ORDERS ***************************************************
 
-        onShowItemsInOfSQL: async function (oEvent) {
+        onShowItemsInOfSQL: async function(oEvent) {
             let that = this;
-            const ordersModelObject = oEvent.getSource().getBindingContext("ordersModelSQL").getObject()
+            const ordersModelObject = oEvent.getSource().getBindingContext("ordersModelSQL").getObject();
             const docEntry = ordersModelObject.DocEntry;
-            const documentLinesObject = ordersModelObject.DocumentLines
+            const documentLinesObject = ordersModelObject.DocumentLines;
             const oDialogName = this._byId("itemsDialog");
             console.log("docEntry :: ", docEntry);
             const items = documentLinesObject;
@@ -112,16 +113,19 @@ sap.ui.define([
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.ItemsForOf",
                     controller: this
-                }).then(async function (oDialog) {
+                }).then(async function(oDialog) {
+
+
                     that._setModel({
                         DocEntry: docEntry,
                         DocumentLines: itemsFilteredByDocEntry,
                     }, "selectedRowModelSQL");
+
                     // Set filtered items model
                     that.openDialog(oDialog);
                 });
             }
-            const getRequestForOrders = await Views.getOrdersWithStock()
+            const getRequestForOrders = await Views.getOrdersWithStock();
             this._setModel(getRequestForOrders, "ordersModelSQL");
         },
 
@@ -133,13 +137,14 @@ sap.ui.define([
             console.log("selected item :: ", selectedItem)
             let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
 
-            selectedItem.stockPerWhs.forEach(line => {
+            selectedItem.stockPerWhs.forEach((line,index) => {
                 let labelWarehouseCode = new sap.m.Label({text: "Code du Magasin : "}).addStyleClass("textMargin");
                 let textCode = new sap.m.Text({text: line.WhsCode});
                 let labelWarehouseName = new sap.m.Label({text: "Nom du Magasin : "}).addStyleClass("textMargin");
                 let textName = new sap.m.Text({text: line.WhsName});
                 let labelWarehouseOnHand = new sap.m.Label({text: "Quantité en magasin : "}).addStyleClass("textMargin");
                 let textOnHand = new sap.m.Text({text: line.OnHand});
+
 
                 let HboxName = new sap.m.HBox({
                     items: [labelWarehouseName, textName],
@@ -159,6 +164,11 @@ sap.ui.define([
                 VBox.addItem(HboxName);
                 VBox.addItem(HboxCode);
                 VBox.addItem(HboxOnHand);
+
+                if (index < selectedItem.stockPerWhs.length - 1) {
+                    let separator = new sap.ui.core.HTML({content: "<hr>", preferDOM: false});
+                    VBox.addItem(separator);
+                }
             });
             // Créer le dialog avec le contenu VBox
             let dialog = new sap.m.Dialog({
@@ -242,6 +252,60 @@ sap.ui.define([
             const updatedOrders = this._getModel("ordersModelSQL").getData()
             const orderUpdated = updatedOrders.find(order => idOrder === order.DocEntry)
             this._setModel(orderUpdated, 'selectedRowModelSQL');
+        },
+
+// ------------------------------------------------ADD AN ORDER------------------------------------------------//
+
+        onOpenDialogAddOrder: function () {
+            let that = this
+            if (!this._byId("createOrderDialog")) {
+                this._oDialogCreate = Fragment.load({
+                    name: "wwl.view.CreateOrder",
+                    controller: this
+                }).then(function (oDialog) {
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy())
+                    oDialog.getEndButton(async function () {
+                        oDialog.close()
+                    });
+                    oDialog.setModel(new JSONModel({}), "newItemModelSQL")
+                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModelSL")
+                    oDialog.open();
+                });
+            } else {
+                this._oDialogCreate.then(function (oDialog) {
+                    oDialog.open();
+                })
+            }
+        },
+
+        onCreateNewOrder: async function (event) {
+            let that = this
+            const dialog = event.getSource().getParent();
+            const selectedItem = dialog.getModel("newItemModelSQL").getData();
+            //a revoir ne fonctionne pas
+            console.log("selecteditem.itemcode", selectedItem.ItemCode)
+            const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModelSL").getData();
+            let oModel = that.getView().getModel();
+            await Models.Orders().post({
+                CardCode: selectedBusinessPartner.CardCode,
+                ItemCode: selectedItem.ItemCode,
+                DocDueDate: new Date(),
+                DocumentLines: [
+                    {
+                        ItemCode: selectedItem.ItemCode,
+                        Quantity: selectedItem.Quantity
+                    }
+                ]
+            }).then(function () {
+                console.log("POST successful");
+            }).catch(function (error) {
+                console.error("POST failed", error);
+            });
+            // refresh done
+            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
+            this._getModel("ordersModelSQL").getData()
+            dialog.close();
         },
 
 //****************************************** DELETE ITEM IN ORDER *************************************************
@@ -535,61 +599,6 @@ sap.ui.define([
         ,
 
 
-// ------------------------------------------------ADD AN ORDER------------------------------------------------//
-
-        onOpenDialogAddOrder: function () {
-            let that = this
-            if (!this._byId("createOrderDialog")) {
-                this._oDialogCreate = Fragment.load({
-                    name: "wwl.view.CreateOrder",
-                    controller: this
-                }).then(function (oDialog) {
-                    that.oView.addDependent(oDialog);
-                    oDialog.attachAfterClose(() => oDialog.destroy())
-                    oDialog.getEndButton(async function () {
-                        oDialog.close()
-                    });
-                    oDialog.setModel(new JSONModel({}), "newItemModelSQL")
-                    oDialog.setModel(new JSONModel({}), "selectedBusinessPartnerModelSL")
-                    oDialog.open();
-                });
-            } else {
-                this._oDialogCreate.then(function (oDialog) {
-                    oDialog.open();
-                })
-            }
-        }
-        ,
-        onCreateNewOrder: async function (event) {
-            let that = this
-            const dialog = event.getSource().getParent();
-            const selectedItem = dialog.getModel("newItemModelSQL").getData();
-            //a revoir ne fonctionne pas
-            console.log("selecteditem.itemcode", selectedItem.ItemCode)
-            const selectedBusinessPartner = dialog.getModel("selectedBusinessPartnerModelSL").getData();
-            let oModel = that.getView().getModel();
-            await Models.Orders().post({
-                CardCode: selectedBusinessPartner.CardCode,
-                ItemCode: selectedItem.ItemCode,
-                DocDueDate: new Date(),
-                DocumentLines: [
-                    {
-                        ItemCode: selectedItem.ItemCode,
-                        Quantity: selectedItem.Quantity
-                    }
-                ]
-            }).then(function () {
-                console.log("POST successful");
-            }).catch(function (error) {
-                console.error("POST failed", error);
-            });
-            // refresh done
-            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
-            this._getModel("ordersModelSQL").getData()
-            dialog.close();
-        }
-        ,
-
 
 // ------------------------------------------------DELETE AN ITEM IN ORDER------------------------------------------------ //
 
@@ -650,10 +659,7 @@ sap.ui.define([
             let updatedOrder = await Models.Orders().id(idOrder).get();
             this._setModel(updatedOrder, 'selectedRowModel');
             dialog.close()
-        }
-        ,
-// ----------------------------------------------------CLOSE AN ORDER------------------------------------------//
-
+        },
 
 // ----------------------------------------------------MESSAGE OF QTY------------------------------------------//
 
@@ -668,23 +674,19 @@ sap.ui.define([
                     }
                 }
             })
-        }
-        ,
-
-//-------------------------------------------------WAREHOUSE--------------------------------------------------//
-
+        },
 
 //-------------------------------------------------SCANNER--------------------------------------------------//
 
         onScan: function (event) {
-            let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"})
+            let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"}).addStyleClass("sapUiSmallMargin")
             let inputBarCode = new sap.m.Input({placeholder: 1645298})
-            let labelQty = new sap.m.Label({text: "Entrez une qantité"})
+            let labelQty = new sap.m.Label({text: "Entrez une qantité"}).addStyleClass("sapUiSmallMargin")
             let inputQty = new sap.m.Input({value: 1})
             let HboxBarCode = new sap.m.HBox({
                 items: [labelBarCode, inputBarCode],
                 alignItems: "Center",
-            })
+            }).addStyleClass("sapUiSmallMargin")
             let HboxQty = new sap.m.HBox({
                 items: [labelQty, inputQty],
                 alignItems: "Center"
@@ -692,7 +694,7 @@ sap.ui.define([
             let dialog = new sap.m.Dialog({
                 title: "SCANNER",
                 content: [HboxBarCode, HboxQty],
-                endButton: new sap.m.Button({
+                beginButton: new sap.m.Button({
                     text: "Valider",
                     press: () => {
                         console.log("valeur inputBarCode : ", inputBarCode.getValue())
@@ -705,11 +707,10 @@ sap.ui.define([
                 })
             })
             dialog.open()
-        }
-        ,
+        },
 
         verificatorExistAndQty: function (inputBarCode, inputQty, event) {
-            //const selectedRow = event.getSource().getParent().getBindingContext("selectedRowModel");
+            const selectedRow = event.getSource().getParent().getBindingContext("ordersModelSQL");
             console.log("selectedRow in verificator : ", selectedRow)
             if (selectedRow) {
                 let CodeBars = selectedRow.CodeBars;

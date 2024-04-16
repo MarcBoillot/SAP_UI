@@ -7,8 +7,9 @@
     <Dialog contentWidth="1000px"
             title="{= ${selectedItemForDeleteModelSQL>/Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemForDeleteModel>/LineNum}+')'}  ">
 
-
-        <Text text="Etes vous sure de vouloir supprimer cet élément de la commande ?"/>
+        <VBox alignItems="Center">
+            <Text text="Etes vous sure de vouloir supprimer cet élément de la commande ?"/>
+        </VBox>
 
         <!--        <Label text=" Entrer une Quantité a supprimer"/>-->
         <!--        <Input required="true" value="{=${selectedItemForDeleteModelSQL>/Quantity}}" />-->

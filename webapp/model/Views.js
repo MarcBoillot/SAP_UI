@@ -85,19 +85,7 @@ sap.ui.define([
             return this.noFormatItems(await this.getView('GetItems'))
         },
 
-        // getBusinessPartners:async function(){
-        //   return this.noFormatBusinessPartners(await this.getView('GetBusinessPartners'))
-        // },
 
-        // noFormatBusinessPartners:function (){
-        //   return data.d.results.map(result =>{
-        //       return {
-        //           CardName:result.CardName,
-        //           CardCode:result.CardCode,
-        //           CardType:result.CardType,
-        //       }
-        //     })
-        // },
 
         noFormatItems: function (data) {
             return data.d.results.map(result => {
@@ -171,7 +159,7 @@ sap.ui.define([
                         totalPriceByItem: line.totalPriceByItem,
                         totalPriceInOrder: line.totalPriceInOrder,
                         LineNum: line.LineNum,
-
+                        Status:line.STATUS
                     });
                 } else {
                     existingLine.stockPerWhs.push({

@@ -65,6 +65,19 @@
                     </l:Column>
 
                     <l:Column width="120px">
+                        <Label text="State"/>
+                        <l:template>
+                            <MessageStrip
+                                    text="{selectedRowModelSQL>Status}"
+                                    type="{=${selectedRowModelSQL>Status} === 'Delivered' ? 'Success' : 'Error'}"
+                                    showIcon="false"
+                                    showCloseButton="false"
+                                    >
+                            </MessageStrip>
+                        </l:template>
+                    </l:Column>
+
+                    <l:Column width="120px">
                         <Label text="Button"/>
                         <l:template>
                             <Button text="Wharehouse" press="onShowWarehouse"/>

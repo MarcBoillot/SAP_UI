@@ -26,6 +26,7 @@
         <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>
         <Input required="true" value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 45 "/>
         </HBox>
+
         <buttons>
             <Button text="CANCEL" press="onCancelAddItem"/>
             <Button text="PATCH_ORDER" press="onAddItemInOrderSQL"/>

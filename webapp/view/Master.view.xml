@@ -90,7 +90,7 @@
                         </l:Table>
                     </IconTabFilter>
 
-                    <IconTabFilter text="Commandes en cours">
+                    <IconTabFilter text=".">
                         <l:Table
                                 id="table"
                                 rows="{path:'ordersModelSQL>/'}"
