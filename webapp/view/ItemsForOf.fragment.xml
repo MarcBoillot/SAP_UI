@@ -69,7 +69,7 @@
                         <l:template>
                             <MessageStrip
                                     text="{selectedRowModelSQL>Status}"
-                                    type="{=${selectedRowModelSQL>Status} === 'Delivered' ? 'Success' : 'Error'}"
+                                    type="{=${selectedRowModelSQL>Status} === 'Delivered' ? 'Success' : ${selectedRowModelSQL>Status} === 'Not delivered' ? 'Error' : 'Warning'}"
                                     showIcon="false"
                                     showCloseButton="false"
                                     >

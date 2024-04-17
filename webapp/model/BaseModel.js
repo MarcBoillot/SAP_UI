@@ -167,7 +167,7 @@ sap.ui.define([
                     CompanyDB: that.appContext.dbCompany,
                 }),
             })
-                // .done((data) => that.setCookie('B1SESSION', data.SessionId, data.SessionTimeout))
+                .done((data) => that.setCookie('B1SESSION', data.SessionId, data.SessionTimeout))
                 .always(() => that.oView.setBusy(false))
         },
 

@@ -5,7 +5,6 @@ sap.ui.define([
     "wwl/utils/Formatter",
     "sap/m/MessageToast",
     "sap/ui/core/Fragment",
-    "sap/ui/core/MessageType",
 
 ], function (
     BaseController,
@@ -384,7 +383,6 @@ sap.ui.define([
             const selectedItem = event.getSource().getParent().getModel("selectedItemWithQuantity").getData();
             const selectedOrder = event.getSource().getParent().getModel("selectedRowModelSQL").getData()
             const idOrder = selectedOrder.DocEntry
-
             console.log("selectedOrder ::", selectedOrder)
             console.log("selecteditem Quantity :: ", selectedItem.Quantity)
             console.log("id Order :: ", idOrder)
@@ -679,76 +677,95 @@ sap.ui.define([
 //-------------------------------------------------SCANNER--------------------------------------------------//
 
         onScan: function (event) {
-            let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"}).addStyleClass("sapUiSmallMargin")
-            let inputBarCode = new sap.m.Input({placeholder: 1645298})
-            let labelQty = new sap.m.Label({text: "Entrez une qantité"}).addStyleClass("sapUiSmallMargin")
-            let inputQty = new sap.m.Input({value: 1})
+            let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"}).addStyleClass("sapUiSmallMargin");
+            let inputBarCode = new sap.m.Input({placeholder: "Entrez un code-bar"});
+            let labelQty = new sap.m.Label({text: "Entrez une quantité"}).addStyleClass("sapUiSmallMargin");
+            let inputQty = new sap.m.Input({value: 1});
             let HboxBarCode = new sap.m.HBox({
                 items: [labelBarCode, inputBarCode],
-                alignItems: "Center",
-            }).addStyleClass("sapUiSmallMargin")
+                alignItems: "Center"
+            }).addStyleClass("sapUiSmallMargin");
             let HboxQty = new sap.m.HBox({
                 items: [labelQty, inputQty],
                 alignItems: "Center"
-            }).addStyleClass("sapUiSmallMargin")
+            }).addStyleClass("sapUiSmallMargin");
             let dialog = new sap.m.Dialog({
                 title: "SCANNER",
                 content: [HboxBarCode, HboxQty],
                 beginButton: new sap.m.Button({
                     text: "Valider",
                     press: () => {
-                        console.log("valeur inputBarCode : ", inputBarCode.getValue())
-                        console.log("valeur inputQty : ", inputQty.getValue())
-                        let valueInputBarCode = inputBarCode.getValue()
+                        console.log("Valeur inputBarCode : ", inputBarCode.getValue());
+                        console.log("Valeur inputQty : ", inputQty.getValue());
+
+                        // let valueInputQty = parseInt(inputQty.getValue());
                         let valueInputQty = inputQty.getValue()
+                        if (isNaN(valueInputQty)) {
+                            console.error("Quantité invalide");
+                            return;
+                        }
+
+                        const selectedOrder = event.getSource().getParent().getParent().getModel("selectedRowModelSQL").getData().DocumentLines;
+                        console.log("Commande sélectionnée :: ", selectedOrder);
+
+                        let valueInputBarCode = inputBarCode.getValue();
                         this.verificatorExistAndQty(valueInputBarCode, valueInputQty, event);
-                        dialog.close()
+
+                        dialog.close();
                     }
                 })
-            })
-            dialog.open()
+            });
+            dialog.open();
         },
 
-        verificatorExistAndQty: function (inputBarCode, inputQty, event) {
-            const selectedRow = event.getSource().getParent().getBindingContext("ordersModelSQL");
-            console.log("selectedRow in verificator : ", selectedRow)
-            if (selectedRow) {
-                let CodeBars = selectedRow.CodeBars;
-                let Qty = selectedRow.Quantity;
 
-                if (CodeBars && Qty) {
-                    if (CodeBars.includes(inputBarCode)) {
-                        let index = BarCode.indexOf(inputBarCode);
-                        if (inputQty == Qty[index]) {
-                            console.log("OK");
-                        } else {
-                            console.log("KO");
-                            MessageBox.warning("La Quantité ne correspond pas", {
-                                actions: ["OK"],
-                                onClose: (sAction) => {
-                                    if (sAction === "OK") {
-                                        console.log("ok");
-                                    }
-                                }
-                            });
+        verificatorExistAndQty: function (inputBarCode, inputQty, event) {
+            const selectedRow = event.getSource().getParent().getParent().getModel("selectedRowModelSQL").getData();
+            const itemsInOrder = selectedRow.DocumentLines;
+            if (itemsInOrder) {
+                if (itemsInOrder.find(item => item.CodeBars !== inputBarCode)) {
+                    sap.m.MessageBox.error("Aucun code bar correspondant", {
+                        actions: ["Fermer"],
+                        onClose: (sAction) => {
+                            if (sAction === "Fermer") {
+                                console.log("Fermé");
+                            }
                         }
+                    });
+                }
+                const itemTarget = itemsInOrder.find(item => item.CodeBars === inputBarCode);
+                console.log("item target ::", itemTarget)
+                console.log("item target. Qty :: ", itemTarget.Quantity)
+                if (itemTarget) {
+                    sap.m.MessageBox.success("Vous avez validé : " + '' +itemTarget.Dscription, {
+                        actions: ["Fermer"],
+                        onClose: (sAction) => {
+                            if (sAction === "Fermer") {
+                                console.log("Article validé");
+                            }
+                        }
+                    });
+                    if (inputQty === itemTarget.Quantity) {
+                        console.log("Quantité valide");
                     } else {
-                        MessageBox.error("Aucun code bar correspondant", {
-                            actions: ["Fermer"],
+                        console.log("Quantité invalide");
+                        sap.m.MessageBox.warning("La Quantité ne correspond pas", {
+                            actions: ["OK"],
                             onClose: (sAction) => {
-                                if (sAction === "Fermer") {
-                                    console.log("Fermé");
+                                if (sAction === "OK") {
+                                    console.log("OK");
                                 }
                             }
                         });
                     }
                 } else {
-                    console.error("Propriétés BarCode ou Quantity non définies dans l'objet de la commande sélectionnée.");
+                    console.log("error 404 : NOT FOUND")
                 }
             } else {
-                console.error("Aucun contexte de liaison trouvé pour l'élément parent de l'élément déclencheur de l'événement.");
+                console.error("Aucun élément de commande trouvé.");
             }
         }
+
     })
 })
 ;
