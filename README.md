@@ -21,7 +21,7 @@ Make in Model directory a file which will name Views.js
 
 In component.js in init function put your url link to service layer and initialize the router
 
-## Request spec 
+## Request spec for SQL VIEW
 *
 
 **SELECT**
@@ -42,7 +42,12 @@ In component.js in init function put your url link to service layer and initiali
 * t1."LineNum",
 * SUM(t2."OnHand") OVER(PARTITION BY t1."ItemCode") AS "totalStock",
 * SUM(t1."Price") OVER(PARTITION BY t0."DocEntry") AS "totalPriceInOrder",
-* SUM(t1."Price") OVER(PARTITION BY t0."DocEntry", t1."ItemCode") AS "totalPriceByItem"
+* SUM(t1."Price") OVER(PARTITION BY t0."DocEntry", t1."ItemCode") AS "totalPriceByItem",
+* CASE
+* WHEN t1."LineStatus"='C' THEN 'Delivered'
+* WHEN t1."Quantity" <> t1."OpenQty" THEN 'Delivery'
+* ELSE 'Not delivered'
+* END	as STATUS
 * **FROM**
 * ORDERS t0
 * **INNER JOIN**
@@ -62,3 +67,9 @@ In component.js in init function put your url link to service layer and initiali
 * t0."DocDueDate" > '2024-01-01'
 * **ORDER BY**
 * t0."DocEntry";
+* END
+
+## An other sql view create just for get all items 
+* Don't forget to give the privilege with target the user just for create after you just need ALTER 
+
+## Use Service Layer for Business Partners 

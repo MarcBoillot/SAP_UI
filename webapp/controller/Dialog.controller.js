@@ -677,6 +677,7 @@ sap.ui.define([
 //-------------------------------------------------SCANNER--------------------------------------------------//
 
         onScan: function (event) {
+            const selectedOrder = event.getSource().getParent().getModel("selectedRowModelSQL").getData().DocumentLines;
             let labelBarCode = new sap.m.Label({text: "Entrez un code-bar"}).addStyleClass("sapUiSmallMargin");
             let inputBarCode = new sap.m.Input({placeholder: "Entrez un code-bar"});
             let labelQty = new sap.m.Label({text: "Entrez une quantité"}).addStyleClass("sapUiSmallMargin");
@@ -695,22 +696,13 @@ sap.ui.define([
                 beginButton: new sap.m.Button({
                     text: "Valider",
                     press: () => {
-                        console.log("Valeur inputBarCode : ", inputBarCode.getValue());
-                        console.log("Valeur inputQty : ", inputQty.getValue());
-
-                        // let valueInputQty = parseInt(inputQty.getValue());
-                        let valueInputQty = inputQty.getValue()
+                        let valueInputQty = inputQty.getValue();
                         if (isNaN(valueInputQty)) {
                             console.error("Quantité invalide");
                             return;
                         }
-
-                        const selectedOrder = event.getSource().getParent().getParent().getModel("selectedRowModelSQL").getData().DocumentLines;
-                        console.log("Commande sélectionnée :: ", selectedOrder);
-
                         let valueInputBarCode = inputBarCode.getValue();
                         this.verificatorExistAndQty(valueInputBarCode, valueInputQty, event);
-
                         dialog.close();
                     }
                 })
@@ -718,38 +710,38 @@ sap.ui.define([
             dialog.open();
         },
 
-
-        verificatorExistAndQty: function (inputBarCode, inputQty, event) {
+        verificatorExistAndQty:async function (inputBarCode, inputQty, event) {
             const selectedRow = event.getSource().getParent().getParent().getModel("selectedRowModelSQL").getData();
             const itemsInOrder = selectedRow.DocumentLines;
             if (itemsInOrder) {
-                if (itemsInOrder.find(item => item.CodeBars !== inputBarCode)) {
-                    sap.m.MessageBox.error("Aucun code bar correspondant", {
-                        actions: ["Fermer"],
-                        onClose: (sAction) => {
-                            if (sAction === "Fermer") {
-                                console.log("Fermé");
-                            }
-                        }
-                    });
-                }
                 const itemTarget = itemsInOrder.find(item => item.CodeBars === inputBarCode);
-                console.log("item target ::", itemTarget)
-                console.log("item target. Qty :: ", itemTarget.Quantity)
                 if (itemTarget) {
-                    sap.m.MessageBox.success("Vous avez validé : " + '' +itemTarget.Dscription, {
-                        actions: ["Fermer"],
-                        onClose: (sAction) => {
-                            if (sAction === "Fermer") {
-                                console.log("Article validé");
-                            }
-                        }
+                    // Mettre à jour le statut de l'article uniquement s'il existe
+                    const idOrder = selectedRow.DocEntry;
+                    let newStatus = "Delivery";
+                    Models.Orders().patch({DocumentLines: newStatus}, idOrder)
+                        .then(() => {
+                            console.log("Statut de l'article mis à jour avec succès!");
+                        }).catch((error) => {
+                        console.error("Erreur lors de la mise à jour du statut de l'article:", error);
                     });
+                    let updatedOrder = await Models.Orders().id(idOrder).get();
+                    this._setModel(updatedOrder, 'selectedRowModel');
+                    console.log("updatedOrder :: ",updatedOrder)
+
                     if (inputQty === itemTarget.Quantity) {
-                        console.log("Quantité valide");
+                        console.log("Item validé");
+                        sap.m.MessageBox.success("Item scanné : " + itemTarget.Dscription, {
+                            actions: ["OK"],
+                            onClose: (sAction) => {
+                                if (sAction === "OK") {
+                                    console.log("OK");
+                                }
+                            }
+                        });
                     } else {
                         console.log("Quantité invalide");
-                        sap.m.MessageBox.warning("La Quantité ne correspond pas", {
+                        sap.m.MessageBox.warning("La quantité ne correspond pas", {
                             actions: ["OK"],
                             onClose: (sAction) => {
                                 if (sAction === "OK") {
@@ -759,12 +751,21 @@ sap.ui.define([
                         });
                     }
                 } else {
-                    console.log("error 404 : NOT FOUND")
+                    sap.m.MessageBox.error("Aucun code bar correspondant", {
+                        actions: ["Fermer"],
+                        onClose: (sAction) => {
+                            if (sAction === "Fermer") {
+                                console.log("Fermé");
+                            }
+                        }
+                    });
                 }
             } else {
                 console.error("Aucun élément de commande trouvé.");
+                MessageToast.show("Aucun élément de commande trouvé.");
             }
         }
+
 
     })
 })
