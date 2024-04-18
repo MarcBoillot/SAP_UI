@@ -64,16 +64,10 @@
                         </l:template>
                     </l:Column>
 
-                    <l:Column width="120px">
-                        <Label text="State"/>
+                    <l:Column class="sapUiSmallMargin" width="80px">
+                        <Label text="Status Item"/>
                         <l:template>
-                            <MessageStrip
-                                    text="{selectedRowModelSQL>Status}"
-                                    type="{=${selectedRowModelSQL>Status} === 'Delivered' ? 'Success' : ${selectedRowModelSQL>Status} === 'Not delivered' ? 'Error' : 'Warning'}"
-                                    showIcon="false"
-                                    showCloseButton="false"
-                                    >
-                            </MessageStrip>
+                            <Text text="{=${selectedRowModelSQL>statusItem} === 'Prepared' ? 'Success' : ${selectedRowModelSQL>statusItem} === 'Pending' ? 'Error' : 'Warning'}" wrapping="false"/>
                         </l:template>
                     </l:Column>
 
@@ -95,6 +89,19 @@
                         <Label text="Delete"/>
                         <l:template>
                             <Button text="Delete" press="onOpenDialogDeleteSQL"/>
+                        </l:template>
+                    </l:Column>
+
+                    <l:Column width="120px">
+                        <Label text="Status Before BL"/>
+                        <l:template>
+                            <MessageStrip
+                                    text="{selectedRowModelSQL>Status}"
+                                    type="{=${selectedRowModelSQL>Status} === 'Delivered' ? 'Success' : ${selectedRowModelSQL>Status} === 'Not delivered' ? 'Error' : 'Warning'}"
+                                    showIcon="false"
+                                    showCloseButton="false"
+                            >
+                            </MessageStrip>
                         </l:template>
                     </l:Column>
 

@@ -159,7 +159,12 @@ sap.ui.define([
                         totalPriceByItem: line.totalPriceByItem,
                         totalPriceInOrder: line.totalPriceInOrder,
                         LineNum: line.LineNum,
-                        Status:line.STATUS
+                        Status:line.STATUS,
+                        statusItem:[{
+                            Pending: line.Pending,
+                            InPreparation: line.InPreparation,
+                            Prepared: line.Prepared,
+                        }]
                     });
                 } else {
                     existingLine.stockPerWhs.push({

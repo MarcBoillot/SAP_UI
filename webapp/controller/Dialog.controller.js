@@ -370,8 +370,9 @@ sap.ui.define([
                     oDialog.close()
                 });
                 that._setModel({
-                    selectedItem: selectedItem,
+                    Dscription: selectedItem.Dscription,
                     Quantity: selectedItem.Quantity,
+                    LineNum: selectedItem.LineNum,
                 }, "selectedItemWithQuantity");
 
                 oDialog.open();
@@ -386,22 +387,21 @@ sap.ui.define([
             console.log("selectedOrder ::", selectedOrder)
             console.log("selecteditem Quantity :: ", selectedItem.Quantity)
             console.log("id Order :: ", idOrder)
-            const dataToPatch = {
-                DocumentLines: [
-                    {
-                        Quantity: selectedItem.Quantity,
-                    }
-                ]
-            };
+            const dataToPatch = {DocumentLines: selectedItem.Quantity};
             await Models.Orders().patch(dataToPatch, idOrder).then(async function () {
                 console.log("PATCH successful");
             }).catch(function (error) {
                 console.error("PATCH failed", error);
             });
-            let updatedOrder = await Models.Orders().id(idOrder).get();
-            console.log("updatedOrder :: ", updatedOrder)
-            this._setModel(updatedOrder, 'selectedItemWithQuantity');
+            await Models.Orders().id(idOrder).get();
+
+
             // await that.getOrdersData()
+            this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
+            const updatedOrders = this._getModel("ordersModelSQL").getData()
+            const orderUpdated = updatedOrders.find(order => idOrder === order.DocEntry)
+            this._setModel(orderUpdated, 'selectedRowModelSQL');
+            console.log("orderUpdated :: ",orderUpdated)
 
         },
 
@@ -453,7 +453,7 @@ sap.ui.define([
         }
         ,
 
-        onCloseModifyQuanityOfItem: function () {
+        onCloseModifyQuantityOfItem: function () {
             this._byId("modifyItem").close()
         }
         ,
@@ -713,12 +713,14 @@ sap.ui.define([
         verificatorExistAndQty:async function (inputBarCode, inputQty, event) {
             const selectedRow = event.getSource().getParent().getParent().getModel("selectedRowModelSQL").getData();
             const itemsInOrder = selectedRow.DocumentLines;
+            console.log("itemsInOrder :: ",itemsInOrder)
             if (itemsInOrder) {
                 const itemTarget = itemsInOrder.find(item => item.CodeBars === inputBarCode);
                 if (itemTarget) {
-                    // Mettre à jour le statut de l'article uniquement s'il existe
                     const idOrder = selectedRow.DocEntry;
-                    let newStatus = "Delivery";
+                    let statusItem = selectedRow.DocumentLines;
+
+                    let newStatus = 'C'
                     Models.Orders().patch({DocumentLines: newStatus}, idOrder)
                         .then(() => {
                             console.log("Statut de l'article mis à jour avec succès!");
@@ -726,7 +728,7 @@ sap.ui.define([
                         console.error("Erreur lors de la mise à jour du statut de l'article:", error);
                     });
                     let updatedOrder = await Models.Orders().id(idOrder).get();
-                    this._setModel(updatedOrder, 'selectedRowModel');
+                    this._setModel(updatedOrder, 'selectedRowModelSQL');
                     console.log("updatedOrder :: ",updatedOrder)
 
                     if (inputQty === itemTarget.Quantity) {

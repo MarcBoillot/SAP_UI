@@ -4,17 +4,17 @@
         id="ModifyItemsFragment">
     <Dialog contentWidth="1000px"
             id="modifyItem"
-            title="{= ${selectedItemWithQuantity>Dscription} + ' ' + '('+'Ligne : ' + ${selectedItemWithQuantity>LineNum}+')'}  ">
+            title="{= ${selectedItemWithQuantity>/Dscription} + ' ...' + '('+'Ligne : ' + ${selectedItemWithQuantity>/LineNum}+')'}  ">
 
 
         <Text text="Etes vous sure de vouloir modifier cet élément de la commande ?"/>
 
-        <Label text=" Entrer une Quantité a supprimer"/>
-        <Input required="true" value="{=${selectedItemWithQuantity>/Quantity}}" />
+        <Label text=" Entrer une Quantité a modifer"/>
+        <Input required="true" value="{selectedItemWithQuantity>/Quantity}" />
 
         <buttons>
             <Button text="YES" press="onChangeQuantityOfItem"/>
-            <Button text="NO" press="onCloseModifyQuanityOfItem"/>
+            <Button text="NO" press="onCloseModifyQuantityOfItem"/>
         </buttons>
 
     </Dialog>
