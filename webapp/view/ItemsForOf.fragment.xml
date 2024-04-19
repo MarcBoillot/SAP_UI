@@ -13,7 +13,7 @@
             <OverflowToolbar style="Clear">
                 <Button text="Add Item" press="onOpenDialogAddItemSQL"/>
                 <ToolbarSpacer/>
-                <Button text="Close this order" press="onClosingOrder"/>
+                <Button text="Generate BL" press="onGenerateBl"/>
             </OverflowToolbar>
             <l:Table
                     rows="{path: 'selectedRowModelSQL>/DocumentLines'}"
