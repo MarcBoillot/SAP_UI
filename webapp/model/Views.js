@@ -139,6 +139,7 @@ sap.ui.define([
                     acc[docEntry].DocEntry = line.DocEntry
                     acc[docEntry].DocNum = line.DocNum
                     acc[docEntry].CodeBars = line.CodeBars
+                    acc[docEntry].LineStatus = line.LineStatus
                 }
 
                 let existingLine = acc[docEntry].DocumentLines.find(docLine => line.LineNum == docLine.LineNum)

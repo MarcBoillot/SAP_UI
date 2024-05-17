@@ -47,21 +47,19 @@ sap.ui.define([
             // /** Exemple d'une vue SQL **/
             const getRequestForOrders = await Views.getOrdersWithStock()
             const getRequestForItems = await Views.getItems()
-            const getRequestForBusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get()
-            const getRequestForDeliveryNotes = await Models.DeliveryNotes().top(1).get()
-            // const getRequestForBusinessPartners = await Views.getBusinessPartners()
+            const getRequestForBusinessPartners = await Models.BusinessPartners().filter("Frozen ne 'tYES'").top(15).get();
+            const getRequestForDeliveryNotes = await Models.DeliveryNotes().orderby('DocDate desc').top(10).get();
 
             this._setModel(getRequestForOrders, "ordersModelSQL");
-            this._setModel(getRequestForBusinessPartners.value, "BusinessPartnersModelSL")
+            this._setModel(getRequestForBusinessPartners.value, "BusinessPartnersModelSL");
             this._setModel(getRequestForItems, "itemsModelSQL");
-            // this._setModel(getRequestForDeliveryNotes, "DeliveryNotesModelSL")
-            // this._setModel(getRequestForBusinessPartners, "businessPartnersModelSQL");
+            this._setModel(getRequestForDeliveryNotes.value, "DeleveryNotesClosedModelSL");
 
             console.log("items ::", getRequestForItems)
             console.log("orders ::", getRequestForOrders)
             console.log("Business Partners :: ", getRequestForBusinessPartners)
-            console.log("Bon de Livraison :: ", getRequestForDeliveryNotes)
-            // console.log("business Partners ::", getRequestForBusinessPartners)
+            console.log("Bon de Livraison :: ", getRequestForDeliveryNotes.value)
+
             // /** Exemple d'une 'SQLQueries' **/
             // const itemsInSpecificBinLocation = await Models.SQLQueries().get('getItemsFromSpecificBinLocation', "?BinCode='M1-M0-PL1'")
             // console.log("itemsInSpecificBinLocation ::", itemsInSpecificBinLocation.value)
@@ -107,10 +105,8 @@ sap.ui.define([
             const docEntry = ordersModelObject.DocEntry;
             const documentLinesObject = ordersModelObject.DocumentLines;
             const oDialogName = this._byId("itemsDialog");
-            console.log("docEntry :: ", docEntry);
             const items = documentLinesObject;
             const itemsFilteredByDocEntry = items.filter(item => item.DocEntry === docEntry);
-            console.log("itemsFilteredByDocEntry :: ", itemsFilteredByDocEntry);
             if (!oDialogName) {
                 this._oDialogDetail = Fragment.load({
                     name: "wwl.view.ItemsForOf",
@@ -129,6 +125,7 @@ sap.ui.define([
             }
             const getRequestForOrders = await Views.getOrdersWithStock();
             this._setModel(getRequestForOrders, "ordersModelSQL");
+
         },
 
 //****************************************** SHOW WHAREHOUSE ************************************************
@@ -136,7 +133,6 @@ sap.ui.define([
         onShowWarehouse: function (oEvent) {
             let that = this;
             const selectedItem = oEvent.getSource().getBindingContext("selectedRowModelSQL").getObject();
-            console.log("selected item :: ", selectedItem)
             let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
 
             selectedItem.stockPerWhs.forEach((line, index) => {
@@ -220,9 +216,6 @@ sap.ui.define([
             const itemsModelData = itemsModelSQL.getData()
             const items = itemsModelData.DocumentLines;
             const idOrder = dialog.getModel("selectedRowModelSQL").getData().DocEntry
-            console.log("selectedItem ::", selectedItem)
-            console.log("items :: ", items)
-            console.log("idOrder :: ", idOrder)
             if (Array.isArray(items)) {
                 //pour ajouter et pas ecraser la ligne deja existante
                 const lineNumArray = items.map(docLine => docLine.LineNum);
@@ -322,8 +315,6 @@ sap.ui.define([
 
             }).then(function (oDialog) {
                 that.oView.addDependent(oDialog);
-                console.log("oDialog.getBeginButton() ::", oDialog.getBeginButton())
-                console.log("oDialog.getEndButton() ::", oDialog.getEndButton())
                 oDialog.attachAfterClose(() => oDialog.destroy())
                 oDialog.getEndButton().attachPress(() => oDialog.close())
                 oDialog.getBeginButton().attachPress(() => {
@@ -335,10 +326,7 @@ sap.ui.define([
         },
 
         onDeleteItemSQL: async function (selectedOrder, lineNumToDelete) {
-            console.log("selectedOrder dans onDelete", selectedOrder)
             const filteredItems = selectedOrder.DocumentLines.filter(item => item.LineNum !== lineNumToDelete);
-            // console.log("lineNum tab :: ", filteredItems.DocumentLines.LineNum)
-            console.log("filtered items", filteredItems)
             const lineNums = filteredItems.map(item => {
                 return {LineNum: item.LineNum}
             });
@@ -387,9 +375,6 @@ sap.ui.define([
             const selectedItem = event.getSource().getParent().getModel("selectedItemWithQuantity").getData();
             const selectedOrder = event.getSource().getParent().getModel("selectedRowModelSQL").getData()
             const idOrder = selectedOrder.DocEntry
-            console.log("selectedOrder ::", selectedOrder)
-            console.log("selecteditem Quantity :: ", selectedItem.Quantity)
-            console.log("id Order :: ", idOrder)
             const dataToPatch = {DocumentLines: selectedItem.Quantity};
             await Models.Orders().patch(dataToPatch, idOrder).then(async function () {
                 console.log("PATCH successful");
@@ -397,14 +382,10 @@ sap.ui.define([
                 console.error("PATCH failed", error);
             });
             await Models.Orders().id(idOrder).get();
-
-
-            // await that.getOrdersData()
             this._setModel(await Views.getOrdersWithStock(), "ordersModelSQL")
             const updatedOrders = this._getModel("ordersModelSQL").getData()
             const orderUpdated = updatedOrders.find(order => idOrder === order.DocEntry)
             this._setModel(orderUpdated, 'selectedRowModelSQL');
-            console.log("orderUpdated :: ", orderUpdated)
 
         },
 
@@ -415,7 +396,6 @@ sap.ui.define([
             // const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsListModel").getObject()
             const selectedItem = event.getSource()
             const dialog = event.getSource().getParent().getParent();
-            console.log("item selectionné :: ", selectedItem)
             dialog.getModel("newItemModelSQL").getData().ItemCode = selectedItem.getSelectedKey()
             // this._getModel("newItemModel").getData().ItemCode = selectedItem.getSelectedKey()
         },
@@ -478,21 +458,15 @@ sap.ui.define([
             const blModelSL = await Models.Orders().id(idOrder).get()
             const CardName = blModelSL.CardName
             const CardCode = blModelSL.CardCode
-            const Address = blModelSL.Address
+
             const NumBl = blModelSL.DocEntry
             const customerToString = '\'' + CardCode + '\'';
 
             const blBpModelSL = await Models.BusinessPartners().id(customerToString).get()
-            const CardCodeCustomer = blBpModelSL.CardCode
-            console.log("blBpModelSL :: :: ::", blBpModelSL)
-
-            console.log("CardName :: ", CardName)
-            console.log("CardCode :: ", CardCode)
-            console.log("Address :: ", Address)
-            console.log("NumBl :: ", NumBl)
-
-
-            const selectedOrder = event.getSource().getParent().getModel("selectedRowModelSQL").getData().DocumentLines;
+            const Address = blModelSL.Address
+            //
+            // const CardCodeCustomer = blBpModelSL.CardCode
+            // const selectedOrder = dialog.getModel("selectedRowModelSQL").getData().DocumentLines;
 
 
             let labelCardName = new sap.m.Label({text: "Nom de la société : "}).addStyleClass("sapUiSmallMargin");
@@ -538,9 +512,11 @@ sap.ui.define([
                     }
                 })
             });
-
-            DocumentLines.forEach(line => {
-              selectedOrder.DocumentLines.push(  {
+            let dataToPost = {
+                DocumentLines: []
+            }
+            items.forEach(line => {
+                dataToPost.DocumentLines.push({
                     BaseEntry: line.DocEntry,
                     BaseLine: line.LineNum,
                     BaseType: 17,
@@ -548,25 +524,13 @@ sap.ui.define([
                 });
             });
 
-            console.log("documentLines :: ",lines)
-            console.log("selectedOrder  :: ", selectedOrder)
-            console.log("selectedOrder.DocEntry  :: ", selectedOrder.DocEntry)
-            console.log("selectedOrder.LineNum :: ", selectedOrder.LineNum)
-            console.log("selectedOrder.Quantity  :: ", selectedOrder.Quantity)
-            await Models.DeliveryNotes().post({
-                DocumentLines:lines
-            }).then(function () {
+            console.log("dataToPost :: ",dataToPost)
+            await Models.DeliveryNotes().post(dataToPost).then(function () {
                 console.log("POST successful");
             }).catch(function (error) {
                 console.error("POST failed", error);
             });
             dialogue.open();
-
-
-            console.log("itemsModelData in Generate :: ", itemsModelData)
-            console.log("idOrder in generate BL :: ", idOrder)
-            console.log("items in Generate :: ", items)
-
 
             // this._setModel(await Models.getDeliveryNotes(), "DeliveryNotesModelSL")
             // const updatedOrders = this._getModel("DeliveryNotesModelSL").getData()
@@ -813,6 +777,12 @@ sap.ui.define([
                         }
                         let valueInputBarCode = inputBarCode.getValue();
                         this.verificatorExistAndQty(valueInputBarCode, valueInputQty, event);
+                        dialog.close();
+                    }
+                }),
+                endButton: new sap.m.Button({
+                    text: "Close",
+                    press: () => {
                         dialog.close();
                     }
                 })

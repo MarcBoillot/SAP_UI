@@ -12,3 +12,9 @@
 .textMargin {
     margin-left: 5px; /* ajustez cette valeur selon vos besoins */
 }
+.ErrorText{
+    color: red;
+}
+.SuccessText{
+    color: green;
+}
