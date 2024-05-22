@@ -140,10 +140,10 @@
                                         </l:template>
                                     </l:Column>
 
-                                    <l:Column width="100px">
+                                    <l:Column width="150px">
                                         <Label text="Button"/>
                                         <l:template>
-                                            <Button text="itemsView" press="onShowItemsInOrder"/>
+                                            <Button text="Voir les produits" press="onShowDetailsOfOrdersClosed"/>
                                         </l:template>
                                     </l:Column>
 

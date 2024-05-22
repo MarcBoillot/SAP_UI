@@ -112,8 +112,6 @@ sap.ui.define([
                     name: "wwl.view.ItemsForOf",
                     controller: this
                 }).then(async function (oDialog) {
-
-
                     that._setModel({
                         DocEntry: docEntry,
                         DocumentLines: itemsFilteredByDocEntry,
@@ -128,6 +126,76 @@ sap.ui.define([
 
         },
 
+//***************************************** SHOW THE BL CLOSED **********************************************
+
+        onShowDetailsOfOrdersClosed: function (oEvent) {
+            let that = this;
+            const selectedOrder = oEvent.getSource().getBindingContext("DeleveryNotesClosedModelSL").getObject()
+            console.log("selectedOrders :: ", selectedOrder)
+            const documentLines = selectedOrder.DocumentLines
+            console.log("doculmentlines :: ", documentLines)
+            // const baseEntry = documentLines.BaseEntry
+            // console.log("baseEntry :: ", baseEntry)
+            let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
+
+            documentLines.forEach(line => {
+                const baseEntry = line.BaseEntry
+
+                let labelBarCode = new sap.m.Label({text: "CodeBar :"}).addStyleClass("textMargin");
+                let textBarCode = new sap.m.Text({text: line.BarCode});
+                let labelItemCode = new sap.m.Label({text: "Article :"}).addStyleClass("textMargin");
+                let textItemCode = new sap.m.Text({text: line.ItemCode});
+                let labelPriceAfterVAT = new sap.m.Label({text: "Prix :"}).addStyleClass("textMargin");
+                let textPriceAfterVAT = new sap.m.Text({text: line.PriceAfterVAT});
+                let labelSerialNumber = new sap.m.Label({text: "N° Série :"}).addStyleClass("textMargin");
+                let textSerialNumber = new sap.m.Text({text: line.SerialNum});
+                let labelQuantity = new sap.m.Label({text: "Qté :"}).addStyleClass("textMargin");
+                let textQuantity = new sap.m.Text({text: line.Quantity});
+
+                let HBoxBarCode = new sap.m.HBox({
+                    items: [labelBarCode, textBarCode],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HBoxItemCode = new sap.m.HBox({
+                    items: [labelItemCode, textItemCode],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HBoxPriceAfterVAT = new sap.m.HBox({
+                    items: [labelPriceAfterVAT, textPriceAfterVAT],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HBoxSerialNumber = new sap.m.HBox({
+                    items: [labelSerialNumber, textSerialNumber],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                let HBoxQuantity = new sap.m.HBox({
+                    items: [labelQuantity, textQuantity],
+                    alignItems: "Center",
+                }).addStyleClass("sapUiSmallMargin");
+
+                VBox.addItem(HBoxBarCode);
+                VBox.addItem(HBoxItemCode);
+                VBox.addItem(HBoxPriceAfterVAT);
+                VBox.addItem(HBoxSerialNumber);
+                VBox.addItem(HBoxQuantity);
+            });
+            let dialog = new sap.m.Dialog({
+                title: "BL détails",
+                content: [VBox],
+                contentWidth:"1500px",
+                endButton: new sap.m.Button({
+                    text: "Fermer",
+                    press: () => {
+                        dialog.close();
+                    }
+                })
+            });
+            dialog.open();
+        },
 //****************************************** SHOW WHAREHOUSE ************************************************
 
         onShowWarehouse: function (oEvent) {
@@ -393,11 +461,48 @@ sap.ui.define([
 //******************************************** SELECT ITEM *****************************************************
 
         onSelectChangeSQL: function (event) {
-            // const selectedItem = event.getSource().getSelectedItem().getBindingContext("itemsListModel").getObject()
-            const selectedItem = event.getSource()
-            const dialog = event.getSource().getParent().getParent();
-            dialog.getModel("newItemModelSQL").getData().ItemCode = selectedItem.getSelectedKey()
-            // this._getModel("newItemModel").getData().ItemCode = selectedItem.getSelectedKey()
+            let that = this;
+            let SerialNumber = 0; // Assurez-vous que SerialNumber a la valeur correcte
+
+            if (SerialNumber !== null) {
+                Fragment.load({
+                    name: "wwl.view.AddItemToOrderWithSerialNumber",
+                    controller: this
+                }).then(function (oDialog) {
+                    that.oView.addDependent(oDialog);
+                    oDialog.attachAfterClose(() => oDialog.destroy());
+                    let buttons = oDialog.getButtons();
+                    if (buttons.length >= 2) {
+                        let cancelButton = buttons[0];
+                        let patchOrderButton = buttons[1];
+
+                        cancelButton.attachPress(() => oDialog.close());
+                        patchOrderButton.attachPress(() => {
+                            const selectedItem = event.getSource(); // Doit être défini avant le patch
+                            that.onAddItemInOrderSQL(selectedItem);
+                            oDialog.close();
+                        });
+                    } else {
+                        console.error("Buttons not found in the dialog.");
+                    }
+
+                    oDialog.setModel(new JSONModel({}), "newItemModelSQL");
+                    oDialog.open();
+                }).catch(function (error) {
+                    console.error("Fragment could not be loaded: ", error);
+                });
+            }
+
+            const selectedItem = event.getSource();
+            const dialog = selectedItem.getParent().getParent();
+            const newItemModel = dialog.getModel("newItemModelSQL");
+
+            if (newItemModel) {
+                newItemModel.getData().ItemCode = selectedItem.getSelectedKey();
+                newItemModel.updateBindings(); // Assurez-vous que les données sont mises à jour dans le modèle
+            } else {
+                console.error("Model newItemModelSQL not found");
+            }
         },
 
 // -------------------------------------------MODIFICATION IN SELECT------------------------------------------------- //
@@ -524,7 +629,7 @@ sap.ui.define([
                 });
             });
 
-            console.log("dataToPost :: ",dataToPost)
+            console.log("dataToPost :: ", dataToPost)
             await Models.DeliveryNotes().post(dataToPost).then(function () {
                 console.log("POST successful");
             }).catch(function (error) {
