@@ -129,64 +129,45 @@ sap.ui.define([
 //***************************************** SHOW THE BL CLOSED **********************************************
 
         onShowDetailsOfOrdersClosed: function (oEvent) {
-            let that = this;
-            const selectedOrder = oEvent.getSource().getBindingContext("DeleveryNotesClosedModelSL").getObject()
-            console.log("selectedOrders :: ", selectedOrder)
-            const documentLines = selectedOrder.DocumentLines
-            console.log("doculmentlines :: ", documentLines)
-            // const baseEntry = documentLines.BaseEntry
-            // console.log("baseEntry :: ", baseEntry)
-            let VBox = new sap.m.VBox().addStyleClass("sapUiSmallMargin");
+            const selectedOrder = oEvent.getSource().getBindingContext("DeleveryNotesClosedModelSL").getObject();
+            const documentLines = selectedOrder.DocumentLines;
+            console.log(documentLines);
+
+            let oTable = new sap.m.Table({
+                mode: sap.m.ListMode.None,
+                columns: [
+                    new sap.m.Column({ header: new sap.m.Text({ text: "Article" }) }),
+                    new sap.m.Column({ header: new sap.m.Text({ text: "Code Barre" }) }),
+                    new sap.m.Column({ header: new sap.m.Text({ text: "N° Série" }) }),
+                    new sap.m.Column({ header: new sap.m.Text({ text: "Quantité" }) }),
+                    new sap.m.Column({ header: new sap.m.Text({ text: "Prix" }) })
+                ]
+            });
 
             documentLines.forEach(line => {
-                const baseEntry = line.BaseEntry
+                let oColumnListItem = new sap.m.ColumnListItem();
+                oColumnListItem.addCell(new sap.m.Text({ text: line.ItemCode }));
+                oColumnListItem.addCell(new sap.m.Text({ text: line.BarCode }));
+                oColumnListItem.addCell(new sap.m.Text({ text: line.SerialNum }));
+                oColumnListItem.addCell(new sap.m.Text({ text: line.Quantity }));
+                oColumnListItem.addCell(new sap.m.Text({ text: line.PriceAfterVAT + " €" }));
 
-                let labelBarCode = new sap.m.Label({text: "CodeBar :"}).addStyleClass("textMargin");
-                let textBarCode = new sap.m.Text({text: line.BarCode});
-                let labelItemCode = new sap.m.Label({text: "Article :"}).addStyleClass("textMargin");
-                let textItemCode = new sap.m.Text({text: line.ItemCode});
-                let labelPriceAfterVAT = new sap.m.Label({text: "Prix :"}).addStyleClass("textMargin");
-                let textPriceAfterVAT = new sap.m.Text({text: line.PriceAfterVAT});
-                let labelSerialNumber = new sap.m.Label({text: "N° Série :"}).addStyleClass("textMargin");
-                let textSerialNumber = new sap.m.Text({text: line.SerialNum});
-                let labelQuantity = new sap.m.Label({text: "Qté :"}).addStyleClass("textMargin");
-                let textQuantity = new sap.m.Text({text: line.Quantity});
-
-                let HBoxBarCode = new sap.m.HBox({
-                    items: [labelBarCode, textBarCode],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                let HBoxItemCode = new sap.m.HBox({
-                    items: [labelItemCode, textItemCode],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                let HBoxPriceAfterVAT = new sap.m.HBox({
-                    items: [labelPriceAfterVAT, textPriceAfterVAT],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                let HBoxSerialNumber = new sap.m.HBox({
-                    items: [labelSerialNumber, textSerialNumber],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                let HBoxQuantity = new sap.m.HBox({
-                    items: [labelQuantity, textQuantity],
-                    alignItems: "Center",
-                }).addStyleClass("sapUiSmallMargin");
-
-                VBox.addItem(HBoxBarCode);
-                VBox.addItem(HBoxItemCode);
-                VBox.addItem(HBoxPriceAfterVAT);
-                VBox.addItem(HBoxSerialNumber);
-                VBox.addItem(HBoxQuantity);
+                // let statusText = line.LineStatus === 'bost_Close' ? "Delivered" : line.LineStatus === 'bost_Open' ? "Delivery" : "Warning";
+                // let lineStatusText = new sap.m.Text({ text: statusText });
+                //
+                // if (line.LineStatus === 'bost_Close') {
+                //     lineStatusText.addStyleClass("sapUiSuccess");
+                // } else {
+                //     lineStatusText.addStyleClass('sapUiWarning');
+                // }
+                // oColumnListItem.addCell(lineStatusText);
+                oTable.addItem(oColumnListItem);
             });
+
             let dialog = new sap.m.Dialog({
                 title: "BL détails",
-                content: [VBox],
-                contentWidth:"1500px",
+                content: [oTable],
+                contentWidth: "900px",
                 endButton: new sap.m.Button({
                     text: "Fermer",
                     press: () => {
@@ -196,6 +177,8 @@ sap.ui.define([
             });
             dialog.open();
         },
+
+
 //****************************************** SHOW WHAREHOUSE ************************************************
 
         onShowWarehouse: function (oEvent) {

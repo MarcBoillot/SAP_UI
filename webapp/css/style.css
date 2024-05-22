@@ -18,3 +18,14 @@
 .SuccessText{
     color: green;
 }
+.sapUiSuccess {
+    color: green;
+}
+
+.sapUiError {
+    color: red;
+}
+
+.sapUiWarning {
+    color: orange;
+}

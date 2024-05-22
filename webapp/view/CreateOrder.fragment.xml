@@ -35,22 +35,38 @@
                 </Select>
                 </OverflowToolbar>
             </HBox>
-            <HBox>
-                <OverflowToolbar>
-                    <ToolbarSpacer/>
-                <Label text="Select an Item"/>
-                <ToolbarSpacer/>
-                <Select
-                        width="500px"
-                        forceSelection="false"
-                        selectedKey="{newItemModelSQL>/ItemCode}"
-                        items="{
-						path: 'itemsModelSQL>/',
-						sorter: { path: 'ItemName' }
-					}">
-                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}"/>
-                </Select>
-                </OverflowToolbar>
+<!--            <HBox>-->
+<!--                <OverflowToolbar>-->
+<!--                    <ToolbarSpacer/>-->
+<!--                <Label text="Select an Item"/>-->
+<!--                <ToolbarSpacer/>-->
+<!--                <Select-->
+<!--                        width="500px"-->
+<!--                        forceSelection="false"-->
+<!--                        selectedKey="{newItemModelSQL>/ItemCode}"-->
+<!--                        items="{-->
+<!--						path: 'itemsModelSQL>/',-->
+<!--						sorter: { path: 'ItemName' }-->
+<!--					}">-->
+<!--                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}"/>-->
+<!--                </Select>-->
+<!--                </OverflowToolbar>-->
+<!--            </HBox>-->
+
+            <HBox alignItems="Center" class="sapUiSmallMargin">
+                <Label text="Product" labelFor="productInput" class="sapUiSmallMarginEnd" />
+                <Input
+                        id="productInput"
+                        placeholder="Enter product"
+                        showSuggestion="true"
+                        suggest=".onSuggest"
+                        suggestionItems="{itemsModelSQL>/}"
+                        change="onSelectChangeSQL"
+                >
+                    <suggestionItems>
+                        <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}" />
+                    </suggestionItems>
+                </Input>
             </HBox>
             <OverflowToolbar>
             <Label text="Entrez une Quantity"/>

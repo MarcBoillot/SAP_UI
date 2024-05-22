@@ -93,6 +93,9 @@ sap.ui.define([
                     ItemCode: result.ItemCode,
                     ItemName: result.ItemName,
                     CodeBars: result.CodeBars,
+                    ManSerNum: result.ManSerNum,
+                    ManBtchNum: result.ManBtchNum,
+                    SysNumber: result.SysNumber,
                 }
             })
         },
