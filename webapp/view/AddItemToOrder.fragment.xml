@@ -5,27 +5,53 @@
         xmlns:l="sap.ui.table"
         id="UpdateItemsFragment">
     <Dialog id="AddItemToOrder"
-            contentWidth="1000px"
             title="ADD A ITEM">
-        <HBox alignItems="Center" class="sapUiSmallMargin">
-            <Label text="Product" labelFor="productInput" class="sapUiSmallMarginEnd" />
-            <Input
+        <VBox class="sapUiSmallMargin sapUiSizeCompact">
+            <Label text="Product" labelFor="productInput" class="sapUiSmallMarginEnd"/>
+            <Input width="100%"
                     id="productInput"
                     placeholder="Enter product"
                     showSuggestion="true"
                     suggest=".onSuggest"
                     suggestionItems="{itemsModelSQL>/}"
                     change="onSelectChangeSQL"
-                    >
+            >
                 <suggestionItems>
-                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}" />
+                    <core:Item key="{itemsModelSQL>ItemCode}" text="{itemsModelSQL>ItemName}"/>
                 </suggestionItems>
             </Input>
-        </HBox>
-        <HBox alignItems="Center" class="sapUiSmallMargin">
-        <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>
-        <Input required="true" value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 45 "/>
-        </HBox>
+
+            <l:Table rows="{SerialNumberModelSQL>/}"
+                     width="50%"
+                     visible="{= ${newItemModelSQL>/isSelected} ? ${newItemModelSQL>/mngSerialNumber} : false }"
+                     selectionMode="MultiToggle">
+                <l:columns>
+                    <l:Column>
+                        <Label text="N°Lot / Série"/>
+                        <l:template>
+                            <Text text="{SerialNumberModelSQL>SysNumber}" wrapping="false"/>
+                        </l:template>
+                    </l:Column>
+                    <l:Column>
+                        <Label text="Quantité"/>
+                        <l:template>
+                            <Input value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 1"/>
+                        </l:template>
+                    </l:Column>
+                </l:columns>
+            </l:Table>
+
+<!--            <Input visible="{monmodel>isSelected}"/>-->
+            <VBox visible="{= ${newItemModelSQL>/isSelected} ? !${newItemModelSQL>/mngSerialNumber} : false }">
+                <Label text="Quantity"/>
+                <Input  value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 45 "/>
+            </VBox>
+
+        </VBox>
+        <!--        <HBox alignItems="Center" class="sapUiSmallMargin">-->
+        <!--        <Label text="Entrer une Quantité" class="sapUiSmallMarginEnd"/>-->
+        <!--        <Input required="true" value="{newItemModelSQL>/Quantity}" placeholder="Exemple : 45 "/>-->
+        <!--        </HBox>-->
 
         <buttons>
             <Button text="CANCEL" press="onCancelAddItem"/>

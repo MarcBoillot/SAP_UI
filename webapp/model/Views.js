@@ -86,18 +86,9 @@ sap.ui.define([
         },
 
 
-
         noFormatItems: function (data) {
-            return data.d.results.map(result => {
-                return {
-                    ItemCode: result.ItemCode,
-                    ItemName: result.ItemName,
-                    CodeBars: result.CodeBars,
-                    ManSerNum: result.ManSerNum,
-                    ManBtchNum: result.ManBtchNum,
-                    SysNumber: result.SysNumber,
-                }
-            })
+            console.log("afficher objet item ::",data.d.results)
+            return data.d.results
         },
 
         noFormatOrders: function (data) {
@@ -168,7 +159,8 @@ sap.ui.define([
                             Pending: line.Pending,
                             InPreparation: line.InPreparation,
                             Prepared: line.Prepared,
-                        }]
+                        }],
+                        SysNumber: line.SysNumber
                     });
                 } else {
                     existingLine.stockPerWhs.push({
