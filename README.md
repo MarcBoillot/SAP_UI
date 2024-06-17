@@ -1,75 +1,67 @@
-# Template for SAP_UI5
-Manipulate the sales order database with order creation and add products to orders and delete products from selected orders. Using the patch post and get methods
+# MFA template
 
-Manage views with fragments and views. Dynamic Page and Single Page View
+## Les Affichages 
+
+### 1_Affichage d'une demande identification
+*il faudra gérer les droits de chaque user*
+### 2_Affichage des 4 secteurs pour lesquels l'application va etre utilisée
+1. La gestion des stocks
+2. La reception
+3. La préparation 
+4. Le controle (avec l'expedition)
 
 
-## La connection a la base test ce fait par cookies
+#### 1.La gestion des stocks
+1. Affichage selection par recherche un article (par designation ou son code article)
+2. Affichage de l'article selectionné avec differents champs 
+    * Son ou ses codebars (possbilité d'imprimer)
+    * Code article
+    * designation 
+    * numero de serie s'il en possede un
+    * Ses differents emplacements avec les quantités attribuées.
 
-https://
+#### 2.La reception
+*Une fois la reception validée la mise en stock sera faite par MFA dans SAP.*
+*Un message d'alerte s'affichera dans SAP pour signaler la fin de reception.*
 
-{
-	"CompanyDB":"OB3_TEST_NL",
- "UserName":"",
- "Password":""
-}
+1. Selection affichage liste des receptions 
+   * Affichage de la liste des receptions (celles qui sont en cours ou en attente de mise en stock) et de leurs statuts
+     * definir les differents champs a afficher
+2. Selection affichage creation d'une reception
+   * Affichage selection par recherche du fournisseur par son code ou sa designation
+   * Affichage scanner de codebar
+   * Affichage des differents champs a completer 
+     * Codebar
+     * code article
+     * designation
+     * quantité
+     * zone de stockage (defini dans dans sap ?)
+     * numero de serie
+     * defaut (avec photo possible)
+   * Affichage de la ligne validée (statut ?)
+   * Affichage codebar non géré (avec une recherche par article)
+   * Affichage pour l'impression de codebar (avec la quantité)
 
-## Second possibility for connection to database by ViewSQL
 
-Make in Model directory a file which will name Views.js 
-* implement your logic for take only the datas you need 
+#### 3.La preparation 
+*Les commandes seront attribuées par l'ayant droit dans SAP*
+1. Affichage de la liste des commandes a preparer avec un status (terminer, en cours ou urgent)
+2. Affichage des lignes a preparer avec differents champs
+    * codebar
+    * numero de serie par selection avec leurs dates
+    * designation
+    * qté saisi
+    * qté restante 
+    * les stocks
+3. Affichage spécifique pour les stocks
 
-In component.js in init function put your url link to service layer and initialize the router
-
-## Request spec for SQL VIEW
-*
-
-**SELECT**
-* 0.0 "measure", <-- dont forget
-* t0."Address",
-* TO_VARCHAR(t0."DocDueDate", 'DD-MM-YYYY') AS "DocDueDate_formatted",
-* t4."CodeBars",
-* t0."DocEntry",
-* t0."CardCode",
-* t0."CardName",
-* t1."ItemCode",
-* t1."Dscription",
-* t2."OnHand",
-* t3."WhsName",
-* t2."WhsCode",
-* t1."Price",
-* t1."Quantity",
-* t1."LineNum",
-* SUM(t2."OnHand") OVER(PARTITION BY t1."ItemCode") AS "totalStock",
-* SUM(t1."Price") OVER(PARTITION BY t0."DocEntry") AS "totalPriceInOrder",
-* SUM(t1."Price") OVER(PARTITION BY t0."DocEntry", t1."ItemCode") AS "totalPriceByItem",
-* CASE
-* WHEN t1."LineStatus"='C' THEN 'Delivered'
-* WHEN t1."Quantity" <> t1."OpenQty" THEN 'Delivery'
-* ELSE 'Not delivered'
-* END	as STATUS
-* **FROM**
-* ORDERS t0
-* **INNER JOIN**
-* ORDER t1 ON t0."DocEntry" = t1."DocEntry"
-* **INNER JOIN**
-* ITEMS t2 ON t1."ItemCode" = t2."ItemCode"
-* **INNER JOIN**
-* WAREHOUSE t3 ON t2."WhsCode" = t3."WhsCode"
-* **INNER JOIN**
-* ITEM t4 ON t2."ItemCode" = t4."ItemCode"
-* **WHERE**
-* t4."INACTIF" <> 'YES'
-* **AND**
-* -- t0."DocEntry" IN (SELECT TOP 15 "DocEntry" FROM ORDERS ORDER BY "DocEntry" DESC)
-* t2."OnHand" > 0
-* **AND**
-* t0."DocDueDate" > '2024-01-01'
-* **ORDER BY**
-* t0."DocEntry";
-* END
-
-## An other sql view create just for get all items 
-* Don't forget to give the privilege with target the user just for create after you just need ALTER 
-
-## Use Service Layer for Business Partners 
+#### 4.Le controle
+1. Affichage de la liste des commandes terminées
+2. Affichage des articles de la commande en lecture 
+3. Affichage des articles de la commandes en mode edition
+4. Affichage des stocks de l'article 
+5. Affichage expedition 
+    * un champs transporteur
+    * Poids
+    * Type de palette 
+6. Affichage pop-up de la validation
