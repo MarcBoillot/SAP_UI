@@ -33,7 +33,7 @@ sap.ui.define([
 
         select: function (select) {
             this.query += this._prepareToAddParam();
-            this.query += `select=${select}`;
+            this.query += `$select=${select}`;
             return this
         },
 
@@ -48,6 +48,7 @@ sap.ui.define([
             this.query += `filter=${filter}`;
             return this
         },
+
 
         orderby: function (orderby) {
             this.query += this._prepareToAddParam();
@@ -308,10 +309,29 @@ sap.ui.define([
                 beforeSend: () => that.busyDialog.open(),
                 method: "post",
                 contentType: "application/json",
-                url: `${that.appContext.url.PrintAPI + that.target}/print`,
+                url: `${that.appContext.url.PrintAPI}`,
                 data: JSON.stringify(dataToPost)
             })
                 .fail((e) => MessageBox.error(this.getError(e)))
+                .always(() => that.busyDialog.close())
+        },
+
+        requestBySeidorAPI: async function (dataToPost) {
+            let that = this;
+
+            await that.handleAuth()
+
+            that.busyDialog.setText("Requete en cours...")
+            that.busyDialog.open()
+
+            return $.ajax({
+                beforeSend: () => that.busyDialog.open(),
+                method: "post",
+                contentType: "application/json",
+                url: `${that.appContext.url.SeidorAPI}`,
+                data: JSON.stringify(dataToPost)
+            })
+                .fail((e) => MessageBox.error(this.getError("Une erreur est survenue lors du post")))
                 .always(() => that.busyDialog.close())
         },
 
